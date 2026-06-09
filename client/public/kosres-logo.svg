@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 200" width="680" height="200">
+  <style>
+    .brand { font-family: 'Arial Black', Arial, sans-serif; font-weight: 900; font-size: 52px; fill: #1a1a1a; letter-spacing: 2px; }
+    .sub   { font-family: Arial, sans-serif; font-weight: 600; font-size: 13px; fill: #444; letter-spacing: 3px; }
+    .tag   { font-family: Georgia, serif; font-style: italic; font-weight: 700; font-size: 12px; fill: #C8102E; letter-spacing: 1px; }
+  </style>
+
+  <!-- Buildings icon -->
+  <g transform="translate(32, 22)">
+    <!-- back buildings -->
+    <rect x="0"   y="68"  width="34"  height="90"  rx="2" fill="#E8324A" opacity="0.45"/>
+    <rect x="13"  y="58"  width="8"   height="10"  rx="1" fill="#E8324A" opacity="0.45"/>
+    <rect x="106" y="52"  width="34"  height="106" rx="2" fill="#E8324A" opacity="0.45"/>
+    <rect x="120" y="40"  width="8"   height="12"  rx="1" fill="#E8324A" opacity="0.45"/>
+    <!-- mid buildings -->
+    <rect x="28"  y="38"  width="42"  height="120" rx="2" fill="#C8102E"/>
+    <rect x="44"  y="24"  width="10"  height="14"  rx="1" fill="#C8102E"/>
+    <rect x="48"  y="12"  width="2"   height="14"       fill="#C8102E"/>
+    <rect x="70"  y="26"  width="42"  height="132" rx="2" fill="#C8102E"/>
+    <rect x="86"  y="10"  width="10"  height="16"  rx="1" fill="#C8102E"/>
+    <rect x="90"  y="0"   width="2"   height="12"       fill="#C8102E"/>
+    <!-- centre tall building -->
+    <rect x="42"  y="50"  width="56"  height="108" rx="2" fill="#8B0000"/>
+    <rect x="62"  y="34"  width="16"  height="16"  rx="1" fill="#8B0000"/>
+    <rect x="69"  y="18"  width="2"   height="18"       fill="#8B0000"/>
+    <!-- windows -->
+    <rect x="52"  y="62"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="68"  y="62"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="84"  y="62"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="52"  y="80"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="68"  y="80"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="84"  y="80"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="52"  y="98"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="68"  y="98"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <rect x="84"  y="98"  width="8"   height="8"   rx="1" fill="white" opacity="0.3"/>
+    <!-- ground line -->
+    <rect x="-4"  y="157" width="148" height="3"   rx="1.5" fill="#C8102E"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(210, 55)">
+    <text class="brand" x="0" y="64">KOSRES LTD</text>
+    <rect x="2" y="78" width="434" height="2" rx="1" fill="#C8102E"/>
+    <text class="sub" x="2" y="100">KIGALI ONE STOP REAL ESTATE SERVICE</text>
+    <text class="tag" x="2" y="122">" All Services Under One Roof "</text>
+  </g>
+</svg>

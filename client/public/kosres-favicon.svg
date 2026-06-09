@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="96" fill="#C8102E"/>
+
+  <!-- Buildings (white on red) -->
+  <g transform="translate(46, 58)">
+    <!-- back left building -->
+    <rect x="0"   y="166" width="70"  height="218" rx="5" fill="white" opacity="0.35"/>
+    <rect x="22"  y="134" width="22"  height="32"  rx="3" fill="white" opacity="0.35"/>
+    <!-- back right building -->
+    <rect x="350" y="122" width="70"  height="262" rx="5" fill="white" opacity="0.35"/>
+    <rect x="372" y="90"  width="22"  height="32"  rx="3" fill="white" opacity="0.35"/>
+    <!-- mid left building -->
+    <rect x="58"  y="90"  width="96"  height="294" rx="5" fill="white" opacity="0.65"/>
+    <rect x="83"  y="58"  width="32"  height="32"  rx="3" fill="white" opacity="0.65"/>
+    <rect x="98"  y="28"  width="5"   height="32"       fill="white" opacity="0.65"/>
+    <!-- mid right building -->
+    <rect x="268" y="66"  width="96"  height="318" rx="5" fill="white" opacity="0.65"/>
+    <rect x="293" y="34"  width="32"  height="32"  rx="3" fill="white" opacity="0.65"/>
+    <rect x="308" y="4"   width="5"   height="32"       fill="white" opacity="0.65"/>
+    <!-- centre tallest building -->
+    <rect x="130" y="114" width="162" height="270" rx="5" fill="white"/>
+    <rect x="178" y="82"  width="50"  height="32"  rx="3" fill="white"/>
+    <rect x="202" y="46"  width="6"   height="40"       fill="white"/>
+    <!-- windows on centre -->
+    <rect x="155" y="140" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="197" y="140" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="245" y="140" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="155" y="182" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="197" y="182" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="245" y="182" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="155" y="224" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="197" y="224" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <rect x="245" y="224" width="22"  height="22"  rx="2" fill="#C8102E" opacity="0.4"/>
+    <!-- ground line -->
+    <rect x="-10" y="382" width="440" height="8"   rx="4" fill="white" opacity="0.7"/>
+  </g>
+</svg>

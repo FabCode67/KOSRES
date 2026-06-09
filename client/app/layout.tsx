@@ -5,7 +5,23 @@ import { ThemeProvider } from "@/components/theme-provider"
 export const metadata: Metadata = {
   title: "KOSRES LTD – Kigali One Stop Real Estate Service",
   description:
-    "Your trusted real estate advisor in Kigali. Buy, sell, rent, manage, and invest in Rwanda's finest properties.",
+    "Your trusted real estate advisor in Kigali. Buy, sell, rent, manage, and invest in Rwanda's finest properties. All services under one roof.",
+  keywords: ["real estate", "Kigali", "Rwanda", "property", "buy", "sell", "rent", "investment"],
+  authors: [{ name: "KOSRES LTD" }],
+  icons: {
+    icon: [
+      { url: "/kosres-favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/kosres-favicon.svg",
+    shortcut: "/kosres-favicon.svg",
+  },
+  openGraph: {
+    title: "KOSRES LTD – Kigali One Stop Real Estate Service",
+    description: "Your trusted real estate advisor in Rwanda. All services under one roof.",
+    siteName: "KOSRES LTD",
+    locale: "en_RW",
+    type: "website",
+  },
 }
 
 export default function RootLayout({
