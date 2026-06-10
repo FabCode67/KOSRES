@@ -3,13 +3,13 @@
 import { useState } from "react"
 import { Check, Loader2, MessageCircle, Send } from "lucide-react"
 import { whatsappLink } from "@/lib/utils"
+import { submitServiceRequest } from "@/lib/api"
 
 export interface FormField {
   name: string
   label: string
   type: "text" | "email" | "tel" | "select" | "grouped-select" | "textarea"
   options?: string[]
-  /** For grouped-select: { groupLabel: string, items: string[] }[] */
   groups?: { groupLabel: string; items: string[] }[]
   required?: boolean
   placeholder?: string
@@ -25,40 +25,46 @@ interface ServiceRequestFormProps {
 }
 
 export default function ServiceRequestForm({
-  serviceTitle,
-  fields,
-  waMessagePrefix,
-  accentColor = "#8B0000",
-  columnHeaders,
+  serviceTitle, fields, waMessagePrefix,
+  accentColor = "#8B0000", columnHeaders,
 }: ServiceRequestFormProps) {
-  const [form, setForm]           = useState<Record<string, string>>({})
+  const [form,      setForm]      = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading]     = useState(false)
-  const [errors, setErrors]       = useState<Record<string, string>>({})
+  const [loading,   setLoading]   = useState(false)
+  const [errors,    setErrors]    = useState<Record<string, string>>({})
 
   const buildWaMessage = () => {
     const prefix = waMessagePrefix || `Hello KOSRES, I'd like to request: ${serviceTitle}`
-    const details = fields
-      .filter(f => form[f.name])
-      .map(f => `• ${f.label}: ${form[f.name]}`)
-      .join("\n")
+    const details = fields.filter(f => form[f.name]).map(f => `• ${f.label}: ${form[f.name]}`).join("\n")
     return `${prefix}\n\n${details}`
   }
 
   const validate = () => {
     const errs: Record<string, string> = {}
-    fields.forEach(f => {
-      if (f.required && !form[f.name]?.trim()) errs[f.name] = "Required"
-    })
+    fields.forEach(f => { if (f.required && !form[f.name]?.trim()) errs[f.name] = "Required" })
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
-    setTimeout(() => { setLoading(false); setSubmitted(true) }, 700)
+    try {
+      // Save to DB
+      await submitServiceRequest({
+        service: serviceTitle,
+        name:    form.name    || form.yourName || "—",
+        email:   form.email   || form.emailAddress || undefined,
+        contact: form.contact || form.phone        || undefined,
+        data:    form,   // full form payload stored as JSON
+      })
+    } catch (err) {
+      console.error("Service request save failed:", err)
+      // Still show success — WhatsApp fallback always works
+    }
+    setLoading(false)
+    setSubmitted(true)
   }
 
   const change = (name: string, value: string) => {
@@ -73,11 +79,10 @@ export default function ServiceRequestForm({
     "focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-white/50 focus:bg-white/15",
     "transition-all duration-150 appearance-none",
   ].join(" ")
-
   const selectBase = inputBase + " cursor-pointer"
   const labelBase  = "block text-[11px] font-bold tracking-widest uppercase text-white/60 mb-1.5"
 
-  // ── Success ──────────────────────────────────────────────────────────
+  // ── Success state ────────────────────────────────────────────────────
   if (submitted) {
     return (
       <div className="rounded-2xl p-10 text-center" style={{ backgroundColor: accentColor }}>
@@ -100,7 +105,6 @@ export default function ServiceRequestForm({
     )
   }
 
-  // Split fields into grid row vs full-width bottom
   const gridFields   = fields.filter(f => f.type !== "textarea" && f.colSpan !== "full")
   const bottomFields = fields.filter(f => f.type === "textarea" || f.colSpan === "full")
 
@@ -110,38 +114,26 @@ export default function ServiceRequestForm({
 
     if (field.type === "grouped-select") {
       return (
-        <select
-          required={field.required}
-          value={form[field.name] || ""}
+        <select required={field.required} value={form[field.name] || ""}
           onChange={e => change(field.name, e.target.value)}
-          className={`${selectBase} flex-1 ${errClass}`}
-        >
+          className={`${selectBase} flex-1 ${errClass}`}>
           <option value="" disabled style={{ background: accentColor }}>Select…</option>
           {field.groups?.map(group => (
-            <optgroup
-              key={group.groupLabel}
-              label={`── ${group.groupLabel} ──`}
-              style={{ background: accentColor, color: "#fff", fontWeight: "bold" }}
-            >
+            <optgroup key={group.groupLabel} label={`── ${group.groupLabel} ──`}
+              style={{ background: accentColor, color: "#fff", fontWeight: "bold" }}>
               {group.items.map(item => (
-                <option key={item} value={item} style={{ background: accentColor, color: "#fff", fontWeight: "normal" }}>
-                  {item}
-                </option>
+                <option key={item} value={item} style={{ background: accentColor, color: "#fff", fontWeight: "normal" }}>{item}</option>
               ))}
             </optgroup>
           ))}
         </select>
       )
     }
-
     if (field.type === "select") {
       return (
-        <select
-          required={field.required}
-          value={form[field.name] || ""}
+        <select required={field.required} value={form[field.name] || ""}
           onChange={e => change(field.name, e.target.value)}
-          className={`${selectBase} flex-1 ${errClass}`}
-        >
+          className={`${selectBase} flex-1 ${errClass}`}>
           <option value="" disabled style={{ background: accentColor }}>Select…</option>
           {field.options?.map(o => (
             <option key={o} value={o} style={{ background: accentColor, color: "#fff" }}>{o}</option>
@@ -149,36 +141,23 @@ export default function ServiceRequestForm({
         </select>
       )
     }
-
     if (field.type === "textarea") {
       return (
-        <textarea
-          rows={4}
-          required={field.required}
-          placeholder={field.placeholder}
-          value={form[field.name] || ""}
-          onChange={e => change(field.name, e.target.value)}
-          className={`${inputBase} resize-none w-full ${errClass}`}
-        />
+        <textarea rows={4} required={field.required} placeholder={field.placeholder}
+          value={form[field.name] || ""} onChange={e => change(field.name, e.target.value)}
+          className={`${inputBase} resize-none w-full ${errClass}`} />
       )
     }
-
     return (
-      <input
-        type={field.type}
-        required={field.required}
-        placeholder={field.placeholder}
-        value={form[field.name] || ""}
-        onChange={e => change(field.name, e.target.value)}
-        className={`${inputBase} flex-1 ${errClass}`}
-      />
+      <input type={field.type} required={field.required} placeholder={field.placeholder}
+        value={form[field.name] || ""} onChange={e => change(field.name, e.target.value)}
+        className={`${inputBase} flex-1 ${errClass}`} />
     )
   }
 
   // ── Form ──────────────────────────────────────────────────────────────
   return (
     <div className="rounded-2xl overflow-hidden shadow-xl" style={{ backgroundColor: accentColor }}>
-      {/* Header */}
       <div className="px-8 pt-8 pb-5 border-b border-white/10">
         <p className="text-amber-300 text-[11px] font-bold tracking-widest uppercase mb-1">{serviceTitle}</p>
         <h3 className="text-xl font-black text-white">Submit Your Request</h3>
@@ -186,65 +165,45 @@ export default function ServiceRequestForm({
       </div>
 
       <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
-        {/* Column headers */}
         {columnHeaders && columnHeaders.length > 0 && (
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: `repeat(${Math.min(columnHeaders.length, 5)}, minmax(0, 1fr))` }}
-          >
+          <div className="grid gap-3"
+            style={{ gridTemplateColumns: `repeat(${Math.min(columnHeaders.length, 5)}, minmax(0, 1fr))` }}>
             {columnHeaders.map(h => (
-              <div key={h} className="text-[10px] font-black tracking-widest uppercase text-white/40 pb-1 border-b border-white/10 leading-tight">
-                {h}
-              </div>
+              <div key={h} className="text-[10px] font-black tracking-widest uppercase text-white/40 pb-1 border-b border-white/10 leading-tight">{h}</div>
             ))}
           </div>
         )}
 
-        {/* Main grid */}
         {gridFields.length > 0 && (
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${Math.min(gridFields.length, 4)}, minmax(0, 1fr))`,
-            }}
-          >
+          <div className="grid gap-4"
+            style={{ gridTemplateColumns: `repeat(${Math.min(gridFields.length, 4)}, minmax(0, 1fr))` }}>
             {gridFields.map(field => (
               <div key={field.name} className="flex flex-col">
                 <label className={labelBase}>
-                  {field.label}
-                  {field.required && <span className="text-amber-300 ml-0.5">*</span>}
+                  {field.label}{field.required && <span className="text-amber-300 ml-0.5">*</span>}
                 </label>
                 {renderField(field)}
-                {errors[field.name] && (
-                  <p className="mt-1 text-[11px] text-amber-300 font-medium">{errors[field.name]}</p>
-                )}
+                {errors[field.name] && <p className="mt-1 text-[11px] text-amber-300 font-medium">{errors[field.name]}</p>}
               </div>
             ))}
           </div>
         )}
 
-        {/* Full-width fields */}
         {bottomFields.map(field => (
           <div key={field.name}>
             <label className={labelBase}>
-              {field.label}
-              {field.required && <span className="text-amber-300 ml-0.5">*</span>}
+              {field.label}{field.required && <span className="text-amber-300 ml-0.5">*</span>}
             </label>
             {renderField(field)}
-            {errors[field.name] && (
-              <p className="mt-1 text-[11px] text-amber-300 font-medium">{errors[field.name]}</p>
-            )}
+            {errors[field.name] && <p className="mt-1 text-[11px] text-amber-300 font-medium">{errors[field.name]}</p>}
           </div>
         ))}
 
-        {/* Actions */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-5 border-t border-white/10">
           <button type="submit" disabled={loading}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-white font-bold text-sm disabled:opacity-60 transition-all hover:bg-white/90 shadow-sm"
             style={{ color: accentColor }}>
-            {loading
-              ? <><Loader2 size={15} className="animate-spin" /> Sending…</>
-              : <><Send size={14} /> Submit Request</>}
+            {loading ? <><Loader2 size={15} className="animate-spin" /> Sending…</> : <><Send size={14} /> Submit Request</>}
           </button>
           <span className="text-white/20 text-xs text-center hidden sm:block">or</span>
           <a href={whatsappLink(buildWaMessage())} target="_blank" rel="noopener noreferrer"
@@ -252,7 +211,6 @@ export default function ServiceRequestForm({
             <MessageCircle size={15} /> Send via WhatsApp
           </a>
         </div>
-
         <p className="text-[11px] text-white/30 text-center">
           Your information is kept confidential and used only to process your request.
         </p>

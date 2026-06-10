@@ -1,7 +1,10 @@
 // API base URL
 export const API_URL: string = (() => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL
-  if (typeof window !== "undefined" && !window.location.hostname.includes("localhost")) {
+  if (
+    typeof window !== "undefined" &&
+    !window.location.hostname.includes("localhost")
+  ) {
     return "https://kosres.onrender.com/api"
   }
   return "http://localhost:3001/api"
@@ -30,6 +33,17 @@ export type ApiProperty = {
   updatedAt: string
 }
 
+export type ApiServiceRequest = {
+  id: string
+  service: string
+  name: string
+  email?: string
+  contact?: string
+  data: Record<string, string>
+  read: boolean
+  createdAt: string
+}
+
 export type PaginatedProperties = {
   data: ApiProperty[]
   meta: { total: number; page: number; limit: number; pages: number }
@@ -46,10 +60,14 @@ export type PropertyQuery = {
   status?: string
 }
 
-// ── Properties (public) ────────────────────────────────────────────────
-export async function getProperties(q: PropertyQuery = {}): Promise<PaginatedProperties> {
+// ── Properties ────────────────────────────────────────────────────────
+export async function getProperties(
+  q: PropertyQuery = {}
+): Promise<PaginatedProperties> {
   const params = new URLSearchParams()
-  Object.entries(q).forEach(([k, v]) => v !== undefined && params.set(k, String(v)))
+  Object.entries(q).forEach(
+    ([k, v]) => v !== undefined && params.set(k, String(v))
+  )
   const res = await fetch(`${API_URL}/properties?${params}`, {
     next: { revalidate: 30 },
   })
@@ -90,7 +108,7 @@ export async function getStats() {
   return res.json()
 }
 
-// ── Auth (still used for login UI only) ──────────────────────────────
+// ── Auth ──────────────────────────────────────────────────────────────
 export async function login(email: string, password: string) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -120,8 +138,11 @@ async function revalidateSite() {
   } catch {}
 }
 
-// ── Admin CRUD — no auth required ────────────────────────────────────
-export async function createProperty(data: Partial<ApiProperty>, _token?: string) {
+// ── Property CRUD ─────────────────────────────────────────────────────
+export async function createProperty(
+  data: Partial<ApiProperty>,
+  _token?: string
+) {
   const res = await fetch(`${API_URL}/properties`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -129,7 +150,7 @@ export async function createProperty(data: Partial<ApiProperty>, _token?: string
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    const msg  = Array.isArray(body?.message)
+    const msg = Array.isArray(body?.message)
       ? body.message.join(", ")
       : body?.message || body?.error || `${res.status} ${res.statusText}`
     throw new Error(msg)
@@ -139,7 +160,11 @@ export async function createProperty(data: Partial<ApiProperty>, _token?: string
   return result
 }
 
-export async function updateProperty(id: string, data: Partial<ApiProperty>, _token?: string) {
+export async function updateProperty(
+  id: string,
+  data: Partial<ApiProperty>,
+  _token?: string
+) {
   const res = await fetch(`${API_URL}/properties/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -147,7 +172,7 @@ export async function updateProperty(id: string, data: Partial<ApiProperty>, _to
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    const msg  = Array.isArray(body?.message)
+    const msg = Array.isArray(body?.message)
       ? body.message.join(", ")
       : body?.message || body?.error || `${res.status} ${res.statusText}`
     throw new Error(msg)
@@ -158,9 +183,7 @@ export async function updateProperty(id: string, data: Partial<ApiProperty>, _to
 }
 
 export async function deleteProperty(id: string, _token?: string) {
-  const res = await fetch(`${API_URL}/properties/${id}`, {
-    method: "DELETE",
-  })
+  const res = await fetch(`${API_URL}/properties/${id}`, { method: "DELETE" })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body?.message || "Failed to delete")
@@ -173,13 +196,12 @@ export async function deleteProperty(id: string, _token?: string) {
 // ── Cloudinary ────────────────────────────────────────────────────────
 export async function uploadImagesToCloudinary(
   files: File[],
-  _token?: string,
+  _token?: string
 ): Promise<string[]> {
-  // Get signed params from server (no auth needed now)
   const sigRes = await fetch(`${API_URL}/upload/sign`)
   if (!sigRes.ok) throw new Error("Failed to get upload signature")
-  const { timestamp, signature, folder, apiKey, cloudName } = await sigRes.json()
-
+  const { timestamp, signature, folder, apiKey, cloudName } =
+    await sigRes.json()
   const urls: string[] = []
   for (const file of files) {
     const fd = new FormData()
@@ -190,36 +212,27 @@ export async function uploadImagesToCloudinary(
     fd.append("api_key", apiKey)
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      { method: "POST", body: fd },
+      { method: "POST", body: fd }
     )
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      throw new Error(err.error?.message || "Cloudinary upload failed")
+      throw new Error(err.error?.message || "Upload failed")
     }
     urls.push((await res.json()).secure_url)
   }
   return urls
 }
 
-export async function uploadImagesViaServer(
-  files: File[],
-  propertyId: string,
-  _token?: string,
-): Promise<string[]> {
-  const fd = new FormData()
-  files.forEach(f => fd.append("files", f))
-  const res = await fetch(`${API_URL}/properties/${propertyId}/images`, {
-    method: "POST",
-    body: fd,
-  })
-  if (!res.ok) throw new Error("Image upload failed")
-  return (await res.json()).images ?? []
-}
-
 // ── Inquiries ─────────────────────────────────────────────────────────
 export async function submitInquiry(
   propertyId: string,
-  data: { name: string; email?: string; phone?: string; message: string; channel?: string },
+  data: {
+    name: string
+    email?: string
+    phone?: string
+    message: string
+    channel?: string
+  }
 ) {
   const res = await fetch(`${API_URL}/inquiries/property/${propertyId}`, {
     method: "POST",
@@ -233,5 +246,44 @@ export async function submitInquiry(
 export async function getInquiries() {
   const res = await fetch(`${API_URL}/inquiries`, { cache: "no-store" })
   if (!res.ok) throw new Error("Failed to fetch inquiries")
+  return res.json()
+}
+
+// ── Service Requests ──────────────────────────────────────────────────
+export async function submitServiceRequest(data: {
+  service: string
+  name: string
+  email?: string
+  contact?: string
+  data: Record<string, string>
+}): Promise<ApiServiceRequest> {
+  const res = await fetch(`${API_URL}/service-requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error("Failed to submit request")
+  return res.json()
+}
+
+export async function getServiceRequests(): Promise<ApiServiceRequest[]> {
+  const res = await fetch(`${API_URL}/service-requests`, { cache: "no-store" })
+  if (!res.ok) throw new Error("Failed to fetch service requests")
+  return res.json()
+}
+
+export async function markServiceRequestRead(id: string) {
+  const res = await fetch(`${API_URL}/service-requests/${id}/read`, {
+    method: "PATCH",
+  })
+  if (!res.ok) throw new Error("Failed to mark read")
+  return res.json()
+}
+
+export async function deleteServiceRequest(id: string) {
+  const res = await fetch(`${API_URL}/service-requests/${id}`, {
+    method: "DELETE",
+  })
+  if (!res.ok) throw new Error("Failed to delete")
   return res.json()
 }
