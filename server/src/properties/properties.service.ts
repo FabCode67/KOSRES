@@ -63,8 +63,15 @@ export class PropertiesService {
     });
   }
 
+  /** Create with a user (used when auth is enabled) */
   async create(dto: CreatePropertyDto, user: User) {
     const property = this.propertyRepo.create({ ...dto, createdBy: user });
+    return this.propertyRepo.save(property);
+  }
+
+  /** Create without requiring a user (auth disabled) */
+  async createWithoutUser(dto: CreatePropertyDto) {
+    const property = this.propertyRepo.create({ ...dto });
     return this.propertyRepo.save(property);
   }
 

@@ -20,14 +20,30 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Register new agent (admin action)' })
+  @ApiOperation({ summary: 'Register new agent' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   @Get('me')
   @ApiBearerAuth()
-  me(@Request() req) {
+  @ApiOperation({ summary: 'Get current user info' })
+  me(@Request() req: any) {
     return this.authService.me(req.user.id);
+  }
+
+  /** Quick endpoint to verify a token is valid */
+  @Get('verify')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify token is valid' })
+  verify(@Request() req: any) {
+    return {
+      valid: true,
+      user: {
+        id:    req.user.id,
+        email: req.user.email,
+        role:  req.user.role,
+      },
+    };
   }
 }

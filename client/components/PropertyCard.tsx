@@ -4,15 +4,15 @@ import Image from "next/image"
 import Link from "next/link"
 import { Bed, Bath, Maximize2, MapPin, MessageCircle } from "lucide-react"
 import type { Property } from "@/lib/properties"
-import { formatPrice, whatsappLink, instagramLink, facebookLink } from "@/lib/utils"
+import { formatPrice, formatPriceCompact, whatsappLink, instagramLink, facebookLink } from "@/lib/utils"
 import { WhatsAppIcon, InstagramIcon, FacebookIcon } from "@/components/social-icons"
 
 export default function PropertyCard({ property }: { property: Property }) {
   const offerBadge =
     property.offerType === "sale"
-      ? { label: "For Sale", cls: "bg-[oklch(0.42_0.19_25)] text-white" }
+      ? { label: "For Sale",   cls: "bg-[oklch(0.42_0.19_25)] text-white" }
       : property.offerType === "rent"
-      ? { label: "For Rent", cls: "bg-[oklch(0.35_0.13_160)] text-white" }
+      ? { label: "For Rent",   cls: "bg-[oklch(0.35_0.13_160)] text-white" }
       : { label: "Short Stay", cls: "bg-[oklch(0.72_0.11_72)] text-black" }
 
   const waMsg = `Hi KOSRES, I'm interested in "${property.title}" (ID: ${property.id}). Please share more details.`
@@ -33,7 +33,7 @@ export default function PropertyCard({ property }: { property: Property }) {
         </span>
         {property.featured && (
           <span className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-400 text-black">
-            Featured
+            ⭐ Featured
           </span>
         )}
       </Link>
@@ -54,7 +54,7 @@ export default function PropertyCard({ property }: { property: Property }) {
           </p>
         </div>
 
-        {/* Stats */}
+        {/* Specs */}
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           {property.bedrooms && (
             <span className="flex items-center gap-1"><Bed size={13} /> {property.bedrooms} bd</span>
@@ -67,13 +67,18 @@ export default function PropertyCard({ property }: { property: Property }) {
           )}
         </div>
 
-        {/* Price */}
-        <p className="text-lg font-bold text-[oklch(0.42_0.19_25)] mt-auto">
-          {formatPrice(property.price, property.priceUnit, property.priceFrequency)}
-        </p>
+        {/* Price — compact + full on hover */}
+        <div className="mt-auto">
+          <p className="text-xl font-black text-[oklch(0.42_0.19_25)] leading-tight">
+            {formatPriceCompact(property.price, property.priceUnit, property.priceFrequency)}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {formatPrice(property.price, property.priceUnit, property.priceFrequency)}
+          </p>
+        </div>
 
         {/* Contact buttons */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2 pt-1 border-t border-border/50">
           <a
             href={whatsappLink(waMsg)}
             target="_blank"

@@ -1,12 +1,7 @@
 // API base URL
-// NEXT_PUBLIC_ vars are inlined at build time. If the env var is missing at
-// build time the fallback runs in the browser and we detect prod by hostname.
 export const API_URL: string = (() => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL
-  if (
-    typeof window !== "undefined" &&
-    !window.location.hostname.includes("localhost")
-  ) {
+  if (typeof window !== "undefined" && !window.location.hostname.includes("localhost")) {
     return "https://kosres.onrender.com/api"
   }
   return "http://localhost:3001/api"
@@ -39,7 +34,7 @@ export type PaginatedProperties = {
   data: ApiProperty[]
   meta: { total: number; page: number; limit: number; pages: number }
 }
-//good
+
 export type PropertyQuery = {
   search?: string
   offerType?: string
@@ -48,21 +43,27 @@ export type PropertyQuery = {
   featured?: boolean
   page?: number
   limit?: number
+  status?: string
 }
 
-// ── Properties ──
-export async function getProperties(
-  q: PropertyQuery = {}
-): Promise<PaginatedProperties> {
+// ── Properties (public) ────────────────────────────────────────────────
+export async function getProperties(q: PropertyQuery = {}): Promise<PaginatedProperties> {
   const params = new URLSearchParams()
-  Object.entries(q).forEach(
-    ([k, v]) => v !== undefined && params.set(k, String(v))
-  )
+  Object.entries(q).forEach(([k, v]) => v !== undefined && params.set(k, String(v)))
   const res = await fetch(`${API_URL}/properties?${params}`, {
     next: { revalidate: 30 },
   })
   if (!res.ok) throw new Error("Failed to fetch properties")
   return res.json()
+}
+
+export async function getAdminProperties(): Promise<ApiProperty[]> {
+  const res = await fetch(`${API_URL}/properties?limit=500`, {
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error("Failed to fetch admin properties")
+  const json = await res.json()
+  return Array.isArray(json) ? json : (json.data ?? [])
 }
 
 export async function getFeaturedProperties(): Promise<ApiProperty[]> {
@@ -81,16 +82,15 @@ export async function getProperty(id: string): Promise<ApiProperty> {
   return res.json()
 }
 
-export async function getStats(token: string) {
+export async function getStats() {
   const res = await fetch(`${API_URL}/properties/admin/stats`, {
-    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   })
-  if (!res.ok) throw new Error("Unauthorized")
+  if (!res.ok) throw new Error("Failed to fetch stats")
   return res.json()
 }
 
-// ── Auth ──
+// ── Auth (still used for login UI only) ──────────────────────────────
 export async function login(email: string, password: string) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -107,58 +107,119 @@ export async function login(email: string, password: string) {
   }>
 }
 
-// ── Admin CRUD ──
-export async function createProperty(
-  data: Partial<ApiProperty>,
-  token: string
-) {
+// ── Cache revalidation ────────────────────────────────────────────────
+async function revalidateSite() {
+  try {
+    const base =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+    await fetch(`${base}/api/revalidate?secret=kosres_revalidate_2024`, {
+      method: "POST",
+    })
+  } catch {}
+}
+
+// ── Admin CRUD — no auth required ────────────────────────────────────
+export async function createProperty(data: Partial<ApiProperty>, _token?: string) {
   const res = await fetch(`${API_URL}/properties`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
-  if (!res.ok) throw new Error("Failed to create")
-  return res.json()
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    const msg  = Array.isArray(body?.message)
+      ? body.message.join(", ")
+      : body?.message || body?.error || `${res.status} ${res.statusText}`
+    throw new Error(msg)
+  }
+  const result = await res.json()
+  revalidateSite()
+  return result
 }
 
-export async function updateProperty(
-  id: string,
-  data: Partial<ApiProperty>,
-  token: string
-) {
+export async function updateProperty(id: string, data: Partial<ApiProperty>, _token?: string) {
   const res = await fetch(`${API_URL}/properties/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
-  if (!res.ok) throw new Error("Failed to update")
-  return res.json()
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    const msg  = Array.isArray(body?.message)
+      ? body.message.join(", ")
+      : body?.message || body?.error || `${res.status} ${res.statusText}`
+    throw new Error(msg)
+  }
+  const result = await res.json()
+  revalidateSite()
+  return result
 }
 
-export async function deleteProperty(id: string, token: string) {
+export async function deleteProperty(id: string, _token?: string) {
   const res = await fetch(`${API_URL}/properties/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
   })
-  if (!res.ok) throw new Error("Failed to delete")
-  return res.json()
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.message || "Failed to delete")
+  }
+  const result = await res.json()
+  revalidateSite()
+  return result
 }
 
+// ── Cloudinary ────────────────────────────────────────────────────────
+export async function uploadImagesToCloudinary(
+  files: File[],
+  _token?: string,
+): Promise<string[]> {
+  // Get signed params from server (no auth needed now)
+  const sigRes = await fetch(`${API_URL}/upload/sign`)
+  if (!sigRes.ok) throw new Error("Failed to get upload signature")
+  const { timestamp, signature, folder, apiKey, cloudName } = await sigRes.json()
+
+  const urls: string[] = []
+  for (const file of files) {
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("timestamp", String(timestamp))
+    fd.append("signature", signature)
+    fd.append("folder", folder)
+    fd.append("api_key", apiKey)
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: "POST", body: fd },
+    )
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error?.message || "Cloudinary upload failed")
+    }
+    urls.push((await res.json()).secure_url)
+  }
+  return urls
+}
+
+export async function uploadImagesViaServer(
+  files: File[],
+  propertyId: string,
+  _token?: string,
+): Promise<string[]> {
+  const fd = new FormData()
+  files.forEach(f => fd.append("files", f))
+  const res = await fetch(`${API_URL}/properties/${propertyId}/images`, {
+    method: "POST",
+    body: fd,
+  })
+  if (!res.ok) throw new Error("Image upload failed")
+  return (await res.json()).images ?? []
+}
+
+// ── Inquiries ─────────────────────────────────────────────────────────
 export async function submitInquiry(
   propertyId: string,
-  data: {
-    name: string
-    email?: string
-    phone?: string
-    message: string
-    channel?: string
-  }
+  data: { name: string; email?: string; phone?: string; message: string; channel?: string },
 ) {
   const res = await fetch(`${API_URL}/inquiries/property/${propertyId}`, {
     method: "POST",
@@ -169,11 +230,8 @@ export async function submitInquiry(
   return res.json()
 }
 
-export async function getInquiries(token: string) {
-  const res = await fetch(`${API_URL}/inquiries`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  })
+export async function getInquiries() {
+  const res = await fetch(`${API_URL}/inquiries`, { cache: "no-store" })
   if (!res.ok) throw new Error("Failed to fetch inquiries")
   return res.json()
 }

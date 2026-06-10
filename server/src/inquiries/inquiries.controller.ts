@@ -24,15 +24,15 @@ export class InquiriesController {
     return this.inquiriesService.create(propertyId, dto);
   }
 
+  @Public()
   @Get()
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all inquiries (admin)' })
+  @ApiOperation({ summary: 'Get all inquiries' })
   findAll() {
     return this.inquiriesService.findAll();
   }
 
+  @Public()
   @Get('property/:propertyId')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get inquiries for a specific property' })
   findByProperty(@Param('propertyId', ParseUUIDPipe) propertyId: string) {
     return this.inquiriesService.findByProperty(propertyId);

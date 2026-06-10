@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Property } from './property.entity';
-import { PropertiesService } from './properties.service';
+import { Property }          from './property.entity';
+import { PropertiesService }    from './properties.service';
 import { PropertiesController } from './properties.controller';
+import { UploadModule }         from '../upload/upload.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Property])],
-  providers: [PropertiesService],
+  imports: [TypeOrmModule.forFeature([Property]), UploadModule],
+  providers:   [PropertiesService],
   controllers: [PropertiesController],
-  exports: [PropertiesService],
+  exports:     [PropertiesService],
 })
 export class PropertiesModule {}

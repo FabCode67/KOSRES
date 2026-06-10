@@ -2,28 +2,29 @@ import {
   Controller, Get, Post, Patch, Delete, Param, Body,
   Query, UseGuards, Request, UseInterceptors,
   UploadedFiles, ParseUUIDPipe, HttpCode, HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import {
-  ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes,
-} from '@nestjs/swagger';
+import { memoryStorage } from 'multer';
+import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { PropertiesService } from './properties.service';
 import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto } from './property.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Public } from '../auth/public.decorator';
+import { JwtAuthGuard }  from '../auth/jwt-auth.guard';
+import { Public }        from '../auth/public.decorator';
+import { UploadService } from '../upload/upload.service';
 
 @ApiTags('properties')
 @UseGuards(JwtAuthGuard)
 @Controller('properties')
 export class PropertiesController {
-  constructor(private propertiesService: PropertiesService) {}
+  constructor(
+    private propertiesService: PropertiesService,
+    private uploadService:     UploadService,
+  ) {}
 
-  // ── PUBLIC ──
   @Public()
   @Get()
-  @ApiOperation({ summary: 'List all active properties with filters + pagination' })
+  @ApiOperation({ summary: 'List properties' })
   findAll(@Query() query: PropertyQueryDto) {
     return this.propertiesService.findAll(query);
   }
@@ -36,71 +37,75 @@ export class PropertiesController {
   }
 
   @Public()
+  @Get('admin/stats')
+  @ApiOperation({ summary: 'Dashboard stats' })
+  getStats() {
+    return this.propertiesService.getStats();
+  }
+
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get single property' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.propertiesService.findOne(id);
   }
 
-  // ── PROTECTED ──
-  @Get('admin/stats')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Dashboard stats (admin)' })
-  getStats() {
-    return this.propertiesService.getStats();
-  }
-
+  @Public()
   @Post()
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create property' })
-  create(@Body() dto: CreatePropertyDto, @Request() req) {
-    return this.propertiesService.create(dto, req.user);
+  create(@Body() dto: CreatePropertyDto) {
+    return this.propertiesService.createWithoutUser(dto);
   }
 
+  @Public()
   @Patch(':id')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update property' })
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePropertyDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePropertyDto,
+  ) {
     return this.propertiesService.update(id, dto);
   }
 
+  @Public()
   @Delete(':id')
-  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete property' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.propertiesService.remove(id);
   }
 
+  @Public()
   @Post(':id/images')
-  @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload images to Cloudinary' })
   @UseInterceptors(
     FilesInterceptor('files', 10, {
-      storage: diskStorage({
-        destination: join(process.cwd(), '..', 'client', 'public', 'uploads'),
-        filename: (_req, file, cb) => {
-          const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
-          cb(null, `property-${unique}${extname(file.originalname)}`);
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
-        const allowed = /\.(jpg|jpeg|png|webp)$/i;
-        cb(null, allowed.test(file.originalname));
+        if (/\.(jpg|jpeg|png|webp)$/i.test(file.originalname)) {
+          cb(null, true);
+        } else {
+          cb(new BadRequestException('Only image files are allowed'), false);
+        }
       },
     }),
   )
-  @ApiOperation({ summary: 'Upload images for a property' })
   async uploadImages(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const urls = files.map((f) => `/uploads/${f.filename}`);
-    return this.propertiesService.addImages(id, urls);
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files provided');
+    }
+    const results    = await this.uploadService.uploadFiles(files, 'kosres/properties');
+    const secureUrls = results.map((r) => r.secureUrl);
+    return this.propertiesService.addImages(id, secureUrls);
   }
 
+  @Public()
   @Delete(':id/images')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove an image from a property' })
   removeImage(
     @Param('id', ParseUUIDPipe) id: string,
