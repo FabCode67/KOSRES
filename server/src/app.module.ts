@@ -8,6 +8,7 @@ import { PropertiesModule }      from './properties/properties.module';
 import { InquiriesModule }       from './inquiries/inquiries.module';
 import { UploadModule }          from './upload/upload.module';
 import { ServiceRequestsModule } from './service-requests/service-requests.module';
+import { PublicationsModule }    from './publications/publications.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ServiceRequestsModule } from './service-requests/service-requests.modul
     InquiriesModule,
     UploadModule,
     ServiceRequestsModule,
+    PublicationsModule,
   ],
   providers: [],
 })
