@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import {
   ShieldCheck, TrendingUp, Home, Building2,
-  ClipboardList, Calculator, Settings,
+  ClipboardList, Calculator, Settings, Car,
   Phone, Mail, MapPin, ChevronRight, Star,
   Heart, Award, Trophy, Sparkles,
 } from "lucide-react"
@@ -21,21 +21,22 @@ const services = [
   { icon: Calculator,    title: "Asset Valuation",              href: "/services/valuation",           desc: "Independent valuations for loans, sale/purchase, insurance, taxation, financial reporting and litigation." },
   { icon: ClipboardList, title: "Property Tax Consulting",      href: "/services/tax-consulting",      desc: "Assess liabilities, prepare declarations, file returns and optimise your property tax obligations." },
   { icon: Settings,      title: "Property Management",          href: "/services/property-management", desc: "Full-service management: tenant sourcing, rent collection, maintenance and financial reporting." },
+  { icon: Car,           title: "Car Rent, Sell & Taxi",        href: "/services/cars",                desc: "Vehicle hire, car buying & selling, airport transfers, city rides and corporate taxi services across Rwanda." },
 ]
 
 const stats = [
   { value: "500+", label: "Properties Listed"      },
   { value: "10+",  label: "Years Experience"        },
   { value: "98%",  label: "Client Satisfaction"     },
-  { value: "7",    label: "Services Under One Roof" },
+  { value: "8",    label: "Services Under One Roof" },
 ]
 
 const quickLinks = [
   { label: "Properties",    href: "/properties"                   },
   { label: "Publications",  href: "/publications"                 },
   { label: "Invest",        href: "/services/invest"              },
+  { label: "Cars",          href: "/services/cars"                },
   { label: "Valuation",     href: "/services/valuation"           },
-  { label: "Due Diligence", href: "/services/due-diligence"       },
   { label: "Management",    href: "/services/property-management" },
   { label: "Contact",       href: "/#contact"                     },
 ]
@@ -114,7 +115,7 @@ export default async function HomePage() {
             <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">Everything you need</p>
             <h2 className="text-3xl font-black sm:text-4xl">Our Services</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-              KOSRES LTD is regulated by the Rwanda Development Board and the Institute of Real Property Valuers in Rwanda.
+              KOSRES LTD is regulated by the Rwanda Development Board and the Institute of Real Property Valuers in Rwanda — all services under one roof.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -154,8 +155,6 @@ export default async function HomePage() {
       {/* ── ABOUT / WHY CHOOSE US ── */}
       <section id="about" className="bg-[oklch(0.97_0.005_80)] py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-
-          {/* Top: image + intro */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
             <div className="relative">
               <div className="aspect-[4/3] overflow-hidden rounded-2xl">
@@ -167,15 +166,12 @@ export default async function HomePage() {
                 <p className="text-xs text-white/70">Regulated</p>
               </div>
             </div>
-
             <div>
               <p className="mb-3 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">Why Choose Us</p>
               <h2 className="mb-5 text-3xl leading-tight font-black sm:text-4xl">Rwanda's Most Trusted Real Estate Partner</h2>
               <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
                 KOSRES LTD is a professional real estate consulting firm regulated by the Rwanda Development Board and the Institute of Real Property Valuers in Rwanda.
               </p>
-
-              {/* Vision + Mission */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-white rounded-xl p-4 border border-border">
                   <p className="text-xs font-bold text-[oklch(0.42_0.19_25)] uppercase tracking-wider mb-1">Vision</p>
@@ -189,41 +185,27 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Why Choose Us — 4 commitment cards */}
           <div>
-            <p className="text-center text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase mb-8">
-              What sets us apart
-            </p>
+            <p className="text-center text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase mb-8">What sets us apart</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {whyChooseUs.map(({ icon: Icon, title, desc }) => (
-                <div key={title}
-                  className="bg-white rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow group">
-                  {/* Icon */}
+                <div key={title} className="bg-white rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow group">
                   <div className="w-12 h-12 rounded-xl bg-[oklch(0.42_0.19_25)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Icon size={22} className="text-white" />
                   </div>
-                  {/* Title */}
-                  <h3 className="font-black text-sm text-slate-800 leading-snug mb-2">
-                    {title}
-                  </h3>
-                  {/* Description */}
+                  <h3 className="font-black text-sm text-slate-800 leading-snug mb-2">{title}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
                 </div>
               ))}
             </div>
-
-            {/* Values row */}
             <div className="flex flex-wrap justify-center gap-3 mt-10">
               {["Accountability","Reliability","Honesty","Client-Focused","Excellence","Integrity"].map(v => (
-                <span key={v}
-                  className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full bg-[oklch(0.42_0.19_25)]/8 text-[oklch(0.42_0.19_25)] border border-[oklch(0.42_0.19_25)]/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[oklch(0.42_0.19_25)] flex-none" />
-                  {v}
+                <span key={v} className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full bg-[oklch(0.42_0.19_25)]/8 text-[oklch(0.42_0.19_25)] border border-[oklch(0.42_0.19_25)]/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[oklch(0.42_0.19_25)] flex-none" />{v}
                 </span>
               ))}
             </div>
           </div>
-
         </div>
       </section>
 
