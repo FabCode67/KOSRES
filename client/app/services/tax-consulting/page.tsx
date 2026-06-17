@@ -1,15 +1,9 @@
 import ServiceLayout from "@/components/ServiceLayout"
 import ServiceRequestForm from "@/components/ServiceRequestForm"
 import { Receipt, Calculator, FileCheck, Scale } from "lucide-react"
+import { RWANDA_DISTRICTS_BY_PROVINCE, PROPERTY_TYPE_GROUPS } from "@/lib/rwanda"
 
 const ACCENT = "#3D2B1F"
-
-const PROPERTY_TYPE_GROUPS = [
-  { groupLabel: "RESIDENTIAL", items: ["Flats","Single Family Home","Town House","Duplex","Villa","G+1"] },
-  { groupLabel: "COMMERCIAL",  items: ["Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station","Factory","Distribution Center","Commercial Land"] },
-  { groupLabel: "AGRICULTURAL",items: ["Farmland","Crop Plantation","Green House"] },
-  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land","Factory","Warehouse","Distribution Center"] },
-]
 
 const highlights = [
   { icon: Receipt,    title: "Full Compliance",      desc: "We ensure all your property tax obligations are met accurately and on time." },
@@ -27,7 +21,6 @@ export default function TaxConsultingPage() {
       breadcrumb="Property Tax Consulting"
       description="KOSRES LTD assists property owners in identifying applicable property taxes, assessing outstanding tax liabilities, determining taxable amounts, preparing and filing property tax declarations, and ensuring timely payment of property taxes."
     >
-      {/* Highlights */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
         {highlights.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
@@ -40,7 +33,6 @@ export default function TaxConsultingPage() {
         ))}
       </div>
 
-      {/* Form */}
       <h2 className="text-xl font-black mb-6 text-slate-800">Request Tax Consulting</h2>
       <ServiceRequestForm
         accentColor={ACCENT}
@@ -53,6 +45,7 @@ export default function TaxConsultingPage() {
           { name: "assetType", label: "Asset Type",    type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
           { name: "taxType",   label: "Type of Property Tax", type: "select", required: true,
             options: ["Immovable Property Tax","Tax on Sale of Immovable Property","Rental Income Tax","Land Lease or Lease Fees"] },
+          { name: "district",  label: "District / Location", type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
           { name: "upi",       label: "UPI (if available)", type: "text", placeholder: "e.g. 1/05/01/01/0001" },
           { name: "request",   label: "Describe your tax situation or question", type: "textarea", required: true,
             placeholder: "Provide details about your property, the tax issue you're facing, any outstanding liabilities, and what specific help you need from our tax consultants…", colSpan: "full" },

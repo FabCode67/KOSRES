@@ -1,15 +1,9 @@
 import ServiceLayout from "@/components/ServiceLayout"
 import ServiceRequestForm from "@/components/ServiceRequestForm"
 import { Scale, FileText, Banknote, ShieldCheck } from "lucide-react"
+import { RWANDA_DISTRICTS_BY_PROVINCE, PROPERTY_TYPE_GROUPS } from "@/lib/rwanda"
 
 const ACCENT = "#1B3A5C"
-
-const PROPERTY_TYPE_GROUPS = [
-  { groupLabel: "RESIDENTIAL", items: ["Flats","Single Family Home","Town House","Duplex","Villa","G+1"] },
-  { groupLabel: "COMMERCIAL",  items: ["Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station","Factory","Distribution Center","Commercial Land"] },
-  { groupLabel: "AGRICULTURAL",items: ["Farmland","Crop Plantation","Green House"] },
-  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land","Factory","Warehouse","Distribution Center"] },
-]
 
 const highlights = [
   { icon: Scale,       title: "Independent & Credible",  desc: "Valuations conducted in accordance with recognized international professional standards." },
@@ -51,8 +45,7 @@ export default function ValuationPage() {
           { name: "propertyType",     label: "Property Type",        type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
           { name: "valuationPurpose", label: "Purpose of Valuation", type: "select",         required: true,
             options: ["Loan Application","Buy & Sale","Bookkeeping","Expropriation","Insurance","Taxation"] },
-          { name: "district",         label: "Location (District)",  type: "select",
-            options: ["Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Bugesera"] },
+          { name: "district",         label: "District / Location",  type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
           { name: "upi",              label: "UPI (if available)",   type: "text",           placeholder: "e.g. 1/05/01/01/0001" },
           { name: "request",          label: "Describe the property or asset", type: "textarea", required: true,
             placeholder: "Provide details about the property or asset to be valued — location, size, construction type, current use and any other relevant information…", colSpan: "full" },

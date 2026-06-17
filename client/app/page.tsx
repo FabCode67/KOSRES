@@ -1,44 +1,97 @@
 import Image from "next/image"
 import Link from "next/link"
 import {
-  ShieldCheck, TrendingUp, Home, Building2,
-  ClipboardList, Calculator, Settings, Car,
-  Phone, Mail, MapPin, ChevronRight, Star,
-  Heart, Award, Trophy, Sparkles,
+  ShieldCheck,
+  TrendingUp,
+  Home,
+  Building2,
+  ClipboardList,
+  Calculator,
+  Settings,
+  Car,
+  Phone,
+  Mail,
+  MapPin,
+  ChevronRight,
+  Star,
+  Heart,
+  Award,
+  Trophy,
+  Sparkles,
 } from "lucide-react"
-import Navbar              from "@/components/Navbar"
-import HeroBanner          from "@/components/HeroBanner"
-import PropertyCard        from "@/components/PropertyCard"
+import Navbar from "@/components/Navbar"
+import HeroBanner from "@/components/HeroBanner"
+import PropertyCard from "@/components/PropertyCard"
 import PublicationsPreview from "@/components/PublicationsPreview"
 import { getFeaturedProperties } from "@/lib/api"
 import type { ApiProperty } from "@/lib/api"
 
 const services = [
-  { icon: TrendingUp,    title: "Invest in Kigali Real Estate", href: "/services/invest",              desc: "Identify rewarding property opportunities tailored to your investment goals and budget across Rwanda." },
-  { icon: ShieldCheck,   title: "Property Due Diligence",       href: "/services/due-diligence",       desc: "Verify ownership, title documents, zoning regulations, mortgages and full legal status before you buy." },
-  { icon: Home,          title: "Buy / Sell & Rent",            href: "/services/buy-sell-rent",       desc: "Seamless residential, commercial, and short-stay property transactions across Kigali and Rwanda." },
-  { icon: Building2,     title: "Design & Construction",        href: "/#contact",                     desc: "Expert architectural design, quantity surveying and project management for residential and commercial builds." },
-  { icon: Calculator,    title: "Asset Valuation",              href: "/services/valuation",           desc: "Independent valuations for loans, sale/purchase, insurance, taxation, financial reporting and litigation." },
-  { icon: ClipboardList, title: "Property Tax Consulting",      href: "/services/tax-consulting",      desc: "Assess liabilities, prepare declarations, file returns and optimise your property tax obligations." },
-  { icon: Settings,      title: "Property Management",          href: "/services/property-management", desc: "Full-service management: tenant sourcing, rent collection, maintenance and financial reporting." },
-  { icon: Car,           title: "Car Rent, Sell & Taxi",        href: "/services/cars",                desc: "Vehicle hire, car buying & selling, airport transfers, city rides and corporate taxi services across Rwanda." },
+  {
+    icon: TrendingUp,
+    title: "Invest in Kigali Real Estate",
+    href: "/services/invest",
+    desc: "Identify rewarding property opportunities tailored to your investment goals and budget across Rwanda.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Property Due Diligence",
+    href: "/services/due-diligence",
+    desc: "Verify ownership, title documents, zoning regulations, mortgages and full legal status before you buy.",
+  },
+  {
+    icon: Home,
+    title: "Buy / Sell & Rent",
+    href: "/services/buy-sell-rent",
+    desc: "Seamless residential, commercial, and short-stay property transactions across Kigali and Rwanda.",
+  },
+  {
+    icon: Building2,
+    title: "Design & Construction",
+    href: "/#contact",
+    desc: "Expert architectural design, quantity surveying and project management for residential and commercial builds.",
+  },
+  {
+    icon: Calculator,
+    title: "Asset Valuation",
+    href: "/services/valuation",
+    desc: "Independent valuations for loans, sale/purchase, insurance, taxation, financial reporting and litigation.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Property Tax Consulting",
+    href: "/services/tax-consulting",
+    desc: "Assess liabilities, prepare declarations, file returns and optimise your property tax obligations.",
+  },
+  {
+    icon: Settings,
+    title: "Property Management",
+    href: "/services/property-management",
+    desc: "Full-service management: tenant sourcing, rent collection, maintenance and financial reporting.",
+  },
+  {
+    icon: Car,
+    title: "Car Rent, Sell & Taxi",
+    href: "/services/cars",
+    desc: "Vehicle hire, car buying & selling, airport transfers, city rides and corporate taxi services across Rwanda.",
+  },
 ]
 
 const stats = [
-  { value: "500+", label: "Properties Listed"      },
-  { value: "10+",  label: "Years Experience"        },
-  { value: "98%",  label: "Client Satisfaction"     },
-  { value: "8",    label: "Services Under One Roof" },
+  { value: "500+", label: "Properties Listed" },
+  { value: "10+", label: "Years Experience" },
+  { value: "98%", label: "Client Satisfaction" },
+  { value: "8", label: "Services Under One Roof" },
 ]
 
 const quickLinks = [
-  { label: "Properties",    href: "/properties"                   },
-  { label: "Publications",  href: "/publications"                 },
-  { label: "Invest",        href: "/services/invest"              },
-  { label: "Cars",          href: "/services/cars"                },
-  { label: "Valuation",     href: "/services/valuation"           },
-  { label: "Management",    href: "/services/property-management" },
-  { label: "Contact",       href: "/#contact"                     },
+  { label: "Properties", href: "/properties" },
+  { label: "Publications", href: "/publications" },
+  { label: "Invest", href: "/services/invest" },
+  { label: "Cars", href: "/services/cars" },
+  { label: "Valuation", href: "/services/valuation" },
+  { label: "Management", href: "/services/property-management" },
+  { label: "Contact", href: "/#contact" },
 ]
 
 const whyChooseUs = [
@@ -66,7 +119,9 @@ const whyChooseUs = [
 
 export default async function HomePage() {
   let featuredProps: ApiProperty[] = []
-  try { featuredProps = await getFeaturedProperties() } catch {}
+  try {
+    featuredProps = await getFeaturedProperties()
+  } catch {}
 
   return (
     <>
@@ -76,7 +131,7 @@ export default async function HomePage() {
       {/* ── STATS ── */}
       <section className="bg-[oklch(0.12_0.01_250)] py-10">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 text-center sm:px-6 md:grid-cols-4">
-          {stats.map(s => (
+          {stats.map((s) => (
             <div key={s.label}>
               <p className="text-3xl font-black text-amber-400">{s.value}</p>
               <p className="mt-1 text-sm text-white/60">{s.label}</p>
@@ -89,21 +144,35 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="mb-10 flex items-end justify-between">
           <div>
-            <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">Hand-picked for you</p>
-            <h2 className="text-3xl font-black sm:text-4xl">Featured Properties</h2>
+            <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">
+              Hand-picked for you
+            </p>
+            <h2 className="text-3xl font-black sm:text-4xl">
+              Featured Properties
+            </h2>
           </div>
-          <Link href="/properties" className="hidden items-center gap-1 text-sm font-semibold text-[oklch(0.42_0.19_25)] hover:underline sm:inline-flex">
+          <Link
+            href="/properties"
+            className="hidden items-center gap-1 text-sm font-semibold text-[oklch(0.42_0.19_25)] hover:underline sm:inline-flex"
+          >
             View all <ChevronRight size={16} />
           </Link>
         </div>
         {featuredProps.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredProps.slice(0, 3).map(p => <PropertyCard key={p.id} property={p as any} />)}
+            {featuredProps.slice(0, 3).map((p) => (
+              <PropertyCard key={p.id} property={p as any} />
+            ))}
           </div>
         ) : (
-          <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-2xl">
+          <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
             <p className="text-sm">No featured properties yet.</p>
-            <Link href="/properties" className="mt-2 inline-block text-sm text-[oklch(0.42_0.19_25)] hover:underline">Browse all properties →</Link>
+            <Link
+              href="/properties"
+              className="mt-2 inline-block text-sm text-[oklch(0.42_0.19_25)] hover:underline"
+            >
+              Browse all properties →
+            </Link>
           </div>
         )}
       </section>
@@ -112,21 +181,36 @@ export default async function HomePage() {
       <section id="services" className="bg-[oklch(0.97_0.005_80)] py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-12 text-center">
-            <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">Everything you need</p>
+            <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">
+              Everything you need
+            </p>
             <h2 className="text-3xl font-black sm:text-4xl">Our Services</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-              KOSRES LTD is regulated by the Rwanda Development Board and the Institute of Real Property Valuers in Rwanda — all services under one roof.
+              KOSRES LTD is regulated by the Rwanda Development Board and the
+              Institute of Real Property Valuers in Rwanda — all services under
+              one roof.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {services.map(({ icon: Icon, title, href, desc }) => (
-              <Link key={title} href={href} className="card-hover flex flex-col gap-3 rounded-xl border border-border bg-white p-5 group">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[oklch(0.97_0.03_25)] group-hover:bg-[oklch(0.42_0.19_25)] transition-colors">
-                  <Icon size={20} className="text-[oklch(0.42_0.19_25)] group-hover:text-white transition-colors" />
+              <Link
+                key={title}
+                href={href}
+                className="card-hover group flex flex-col gap-3 rounded-xl border border-border bg-white p-5"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[oklch(0.97_0.03_25)] transition-colors group-hover:bg-[oklch(0.42_0.19_25)]">
+                  <Icon
+                    size={20}
+                    className="text-[oklch(0.42_0.19_25)] transition-colors group-hover:text-white"
+                  />
                 </div>
-                <h3 className="text-sm leading-snug font-bold group-hover:text-[oklch(0.42_0.19_25)] transition-colors">{title}</h3>
-                <p className="text-xs leading-relaxed text-muted-foreground">{desc}</p>
-                <span className="mt-auto text-xs font-semibold text-[oklch(0.42_0.19_25)] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <h3 className="text-sm leading-snug font-bold transition-colors group-hover:text-[oklch(0.42_0.19_25)]">
+                  {title}
+                </h3>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {desc}
+                </p>
+                <span className="mt-auto flex items-center gap-1 text-xs font-semibold text-[oklch(0.42_0.19_25)] opacity-0 transition-opacity group-hover:opacity-100">
                   Learn more <ChevronRight size={12} />
                 </span>
               </Link>
@@ -139,13 +223,19 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="mb-10 flex items-end justify-between">
           <div>
-            <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">Knowledge Hub</p>
+            <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">
+              Knowledge Hub
+            </p>
             <h2 className="text-3xl font-black sm:text-4xl">Publications</h2>
-            <p className="text-muted-foreground text-sm mt-1 max-w-md">
-              Market reports, investment guides and real estate news from our experts.
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              Market reports, investment guides and real estate news from our
+              experts.
             </p>
           </div>
-          <Link href="/publications" className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-[oklch(0.42_0.19_25)] hover:underline">
+          <Link
+            href="/publications"
+            className="hidden items-center gap-1 text-sm font-semibold text-[oklch(0.42_0.19_25)] hover:underline sm:inline-flex"
+          >
             View all <ChevronRight size={16} />
           </Link>
         </div>
@@ -155,53 +245,97 @@ export default async function HomePage() {
       {/* ── ABOUT / WHY CHOOSE US ── */}
       <section id="about" className="bg-[oklch(0.97_0.005_80)] py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
+          <div className="mb-16 grid grid-cols-1 items-center gap-12 md:grid-cols-2">
             <div className="relative">
               <div className="aspect-[4/3] overflow-hidden rounded-2xl">
-                <Image src="/images/WhatsApp Image 2026-06-04 at 09.15.39.jpeg" alt="KOSRES properties" fill className="object-cover" />
+                <Image
+                  src="/images/WhatsApp Image 2026-06-04 at 09.15.39.jpeg"
+                  alt="KOSRES properties"
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="absolute -right-4 -bottom-4 rounded-xl bg-[oklch(0.42_0.19_25)] p-5 text-white shadow-xl">
-                <Star size={22} className="mb-1 fill-amber-300 text-amber-300" />
+                <Star
+                  size={22}
+                  className="mb-1 fill-amber-300 text-amber-300"
+                />
                 <p className="text-xl font-black">RDB</p>
                 <p className="text-xs text-white/70">Regulated</p>
               </div>
             </div>
             <div>
-              <p className="mb-3 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">Why Choose Us</p>
-              <h2 className="mb-5 text-3xl leading-tight font-black sm:text-4xl">Rwanda's Most Trusted Real Estate Partner</h2>
-              <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                KOSRES LTD is a professional real estate consulting firm regulated by the Rwanda Development Board and the Institute of Real Property Valuers in Rwanda.
+              <p className="mb-3 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">
+                Why Choose Us
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl p-4 border border-border">
-                  <p className="text-xs font-bold text-[oklch(0.42_0.19_25)] uppercase tracking-wider mb-1">Vision</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">To be one of the best real estate service providers across Africa.</p>
+              <h2 className="mb-5 text-3xl leading-tight font-black sm:text-4xl">
+                Rwanda's Most Trusted Real Estate Partner
+              </h2>
+              <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
+                KOSRES LTD is a professional real estate consulting firm
+                regulated by the Rwanda Development Board and the Institute of
+                Real Property Valuers in Rwanda.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-border bg-white p-4">
+                  <p className="mb-1 text-xs font-bold tracking-wider text-[oklch(0.42_0.19_25)] uppercase">
+                    Vision
+                  </p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    To be one of the best real estate service providers across
+                    Africa.
+                  </p>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-border">
-                  <p className="text-xs font-bold text-[oklch(0.42_0.19_25)] uppercase tracking-wider mb-1">Mission</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">Reliable, innovative real estate services powered by technology to achieve customers' financial goals.</p>
+                <div className="rounded-xl border border-border bg-white p-4">
+                  <p className="mb-1 text-xs font-bold tracking-wider text-[oklch(0.42_0.19_25)] uppercase">
+                    Mission
+                  </p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Reliable, innovative real estate services powered by
+                    technology to achieve customers' financial goals.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           <div>
-            <p className="text-center text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase mb-8">What sets us apart</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <p className="mb-8 text-center text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">
+              What sets us apart
+            </p>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {whyChooseUs.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="bg-white rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow group">
-                  <div className="w-12 h-12 rounded-xl bg-[oklch(0.42_0.19_25)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <div
+                  key={title}
+                  className="group rounded-2xl border border-border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                >
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[oklch(0.42_0.19_25)] transition-transform group-hover:scale-110">
                     <Icon size={22} className="text-white" />
                   </div>
-                  <h3 className="font-black text-sm text-slate-800 leading-snug mb-2">{title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                  <h3 className="mb-2 text-sm leading-snug font-black text-slate-800">
+                    {title}
+                  </h3>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {desc}
+                  </p>
                 </div>
               ))}
             </div>
-            <div className="flex flex-wrap justify-center gap-3 mt-10">
-              {["Accountability","Reliability","Honesty","Client-Focused","Excellence","Integrity"].map(v => (
-                <span key={v} className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full bg-[oklch(0.42_0.19_25)]/8 text-[oklch(0.42_0.19_25)] border border-[oklch(0.42_0.19_25)]/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[oklch(0.42_0.19_25)] flex-none" />{v}
+            <div className="mt-10 flex flex-wrap justify-center gap-3">
+              {[
+                "Accountability",
+                "Reliability",
+                "Honesty",
+                "Client-Focused",
+                "Excellence",
+                "Integrity",
+              ].map((v) => (
+                <span
+                  key={v}
+                  className="flex items-center gap-2 rounded-full border border-[oklch(0.42_0.19_25)]/20 bg-[oklch(0.42_0.19_25)]/8 px-4 py-2 text-sm font-semibold text-[oklch(0.42_0.19_25)]"
+                >
+                  <span className="h-1.5 w-1.5 flex-none rounded-full bg-[oklch(0.42_0.19_25)]" />
+                  {v}
                 </span>
               ))}
             </div>
@@ -210,27 +344,44 @@ export default async function HomePage() {
       </section>
 
       {/* ── CONTACT ── */}
-      <section id="contact" className="bg-[oklch(0.12_0.01_250)] py-20 text-white">
+      <section
+        id="contact"
+        className="bg-[oklch(0.12_0.01_250)] py-20 text-white"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-12 text-center">
-            <p className="mb-2 text-sm font-semibold tracking-widest text-amber-400 uppercase">Get in Touch</p>
-            <h2 className="text-3xl font-black sm:text-4xl">Book Your Consultation</h2>
+            <p className="mb-2 text-sm font-semibold tracking-widest text-amber-400 uppercase">
+              Get in Touch
+            </p>
+            <h2 className="text-3xl font-black sm:text-4xl">
+              Book Your Consultation
+            </h2>
           </div>
           <div className="grid gap-6 text-center sm:grid-cols-3">
-            <a href="https://wa.me/250792871729?text=Hello%20KOSRES%2C%20I%27d%20like%20to%20book%20a%20consultation."
-              target="_blank" rel="noopener noreferrer"
-              className="whatsapp-btn flex flex-col items-center gap-3 rounded-xl p-7 transition-opacity hover:opacity-90">
-              <Phone size={28} /><p className="font-bold">WhatsApp Us</p>
+            <a
+              href="https://wa.me/250792871729?text=Hello%20KOSRES%2C%20I%27d%20like%20to%20book%20a%20consultation."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="whatsapp-btn flex flex-col items-center gap-3 rounded-xl p-7 transition-opacity hover:opacity-90"
+            >
+              <Phone size={28} />
+              <p className="font-bold">WhatsApp Us</p>
               <p className="text-sm text-white/80">+250 792 871 729</p>
             </a>
-            <a href="mailto:kosresltd@gmail.com"
-              className="flex flex-col items-center gap-3 rounded-xl border border-white/20 bg-white/10 p-7 transition-colors hover:bg-white/20">
-              <Mail size={28} /><p className="font-bold">Email Us</p>
+            <a
+              href="mailto:kosresltd@gmail.com"
+              className="flex flex-col items-center gap-3 rounded-xl border border-white/20 bg-white/10 p-7 transition-colors hover:bg-white/20"
+            >
+              <Mail size={28} />
+              <p className="font-bold">Email Us</p>
               <p className="text-sm text-white/70">kosresltd@gmail.com</p>
             </a>
             <div className="flex flex-col items-center gap-3 rounded-xl border border-white/20 bg-white/10 p-7">
-              <MapPin size={28} /><p className="font-bold">Find Us</p>
-              <p className="text-center text-sm text-white/70">Kigali, Rwanda</p>
+              <MapPin size={28} />
+              <p className="font-bold">Find Us</p>
+              <p className="text-center text-sm text-white/70">
+                Kigali, Rwanda
+              </p>
             </div>
           </div>
         </div>
@@ -240,13 +391,28 @@ export default async function HomePage() {
       <footer className="bg-[oklch(0.08_0.01_250)] py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex flex-col items-start gap-8 border-b border-white/10 pb-8 sm:flex-row sm:justify-between">
-            <Image src="/kosres-logo.svg" alt="KOSRES LTD" width={180} height={54} className="h-11 w-auto brightness-0 invert opacity-70" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-12 gap-y-2">
-              {quickLinks.map(l => <a key={l.href} href={l.href} className="text-xs text-white/50 transition-colors hover:text-white">{l.label}</a>)}
+            <Image
+              src="/images/kosres_logo_refined.png"
+              alt="KOSRES LTD"
+              width={140}
+              height={90}
+              className="h-14 w-auto object-contain"
+            />{" "}
+            <div className="grid grid-cols-2 gap-x-12 gap-y-2 sm:grid-cols-3">
+              {quickLinks.map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  className="text-xs text-white/50 transition-colors hover:text-white"
+                >
+                  {l.label}
+                </a>
+              ))}
             </div>
           </div>
           <p className="pt-6 text-center text-xs text-white/30">
-            © {new Date().getFullYear()} KOSRES LTD · Kigali One Stop Real Estate Service · "All Services Under One Roof"
+            © {new Date().getFullYear()} KOSRES LTD · Kigali One Stop Real
+            Estate Service · "All Services Under One Roof"
           </p>
         </div>
       </footer>

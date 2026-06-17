@@ -10,6 +10,8 @@ import {
 import { useState } from "react"
 import { useAdmin } from "@/components/AdminContext"
 
+const LOGO = "/images/kosres_logo_refined.png"
+
 const navItems = [
   { label: "Dashboard",        href: "/admin",                  icon: LayoutDashboard },
   { label: "Properties",       href: "/admin/properties",       icon: List            },
@@ -40,24 +42,26 @@ function LoginScreen() {
   return (
     <div className="min-h-screen bg-[oklch(0.12_0.01_250)] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-        <div className="flex items-center gap-3 mb-8">
-          <Image src="/kosres-favicon.svg" alt="KOSRES LTD" width={40} height={40} className="rounded" />
-          <div>
-            <p className="font-bold text-sm" style={{ fontFamily: "'Playfair Display', serif" }}>KOSRES LTD</p>
-            <p className="text-xs text-slate-500">Admin Portal</p>
-          </div>
+        <div className="flex items-center justify-center mb-4">
+          <Image src={LOGO} alt="KOSRES LTD" width={220} height={110} className="object-contain" />
         </div>
-        <h2 className="text-xl font-black mb-6 text-slate-800">Sign In</h2>
+        <h2 className="text-base font-bold mb-6 text-slate-500 text-center tracking-wide">
+          Admin Portal Sign In
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className={lbl}>Email</label>
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@kosres.rw" className={inp} />
+            <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="admin@kosres.rw" className={inp} />
           </div>
           <div>
             <label className={lbl}>Password</label>
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className={inp} />
+            <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••" className={inp} />
           </div>
-          {error && <p className="text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-xl">{error}</p>}
+          {error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-xl">{error}</p>
+          )}
           <button type="submit" disabled={loading}
             className="w-full py-3 rounded-xl bg-[oklch(0.42_0.19_25)] text-white font-semibold flex items-center justify-center gap-2 hover:bg-[oklch(0.36_0.18_25)] disabled:opacity-60 transition-colors">
             {loading ? <Loader2 size={16} className="animate-spin" /> : <LogIn size={16} />}
@@ -78,14 +82,13 @@ export default function AdminShell({ children, title }: { children: React.ReactN
   return (
     <div className="min-h-screen flex bg-[oklch(0.97_0.005_80)]">
       <aside className="w-60 bg-[oklch(0.12_0.01_250)] text-white flex flex-col shrink-0 sticky top-0 h-screen">
-        <div className="p-5 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <Image src="/kosres-favicon.svg" alt="KOSRES" width={36} height={36} className="rounded" />
-            <div>
-              <p className="font-bold text-sm leading-tight text-white" style={{ fontFamily: "'Playfair Display', serif" }}>KOSRES LTD</p>
-              <p className="text-xs text-white/50 capitalize">{user?.role ?? "admin"}</p>
-            </div>
+        {/* Logo — white pill so logo reads on dark sidebar */}
+        <div className="px-4 py-3 border-b border-white/10 flex flex-col items-center">
+          <div className="bg-white rounded-xl px-2 py-1.5 w-full flex justify-center">
+            <Image src={LOGO} alt="KOSRES LTD" width={150} height={76}
+              className="h-14 w-auto object-contain" />
           </div>
+          <p className="text-[10px] text-white/40 mt-2 capitalize">{user?.role ?? "admin"}</p>
         </div>
 
         <nav className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
@@ -115,7 +118,8 @@ export default function AdminShell({ children, title }: { children: React.ReactN
             <Link href="/" className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white transition-colors">
               <Home size={12} /> Website
             </Link>
-            <button onClick={logout} className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white transition-colors ml-auto">
+            <button onClick={logout}
+              className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white transition-colors ml-auto">
               <LogOut size={12} /> Logout
             </button>
           </div>

@@ -10,6 +10,8 @@ import {
   Calculator, ClipboardList, Settings, Car,
 } from "lucide-react"
 
+const LOGO = "/images/kosres_logo_refined.png"
+
 const services = [
   { label: "Invest",        href: "/services/invest",              icon: TrendingUp,    color: "#7B1113" },
   { label: "Buy/Sell",      href: "/services/buy-sell-rent",       icon: Home,          color: "#7B1113" },
@@ -30,19 +32,29 @@ export default function Navbar() {
 
       {/* ── Top contact bar ── */}
       <div className="bg-[oklch(0.12_0.01_250)] px-4 py-1.5 flex justify-end gap-6 text-xs text-white">
-        <a href="tel:+250792871729" className="flex items-center gap-1.5 hover:text-amber-300 transition-colors">
+        <a href="tel:+250792871729"
+          className="flex items-center gap-1.5 hover:text-amber-300 transition-colors">
           <Phone size={11} /> +250 792 871 729
         </a>
-        <a href="mailto:kosresltd@gmail.com" className="flex items-center gap-1.5 hover:text-amber-300 transition-colors">
+        <a href="mailto:kosresltd@gmail.com"
+          className="flex items-center gap-1.5 hover:text-amber-300 transition-colors">
           <Mail size={11} /> kosresltd@gmail.com
         </a>
       </div>
 
       {/* ── Row 1: Logo + main links ── */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 flex h-14 items-center justify-between border-b border-border/50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 flex h-16 items-center justify-between border-b border-border/50">
+
+        {/* Logo — full refined PNG */}
         <Link href="/" className="shrink-0">
-          <Image src="/kosres-logo.svg" alt="KOSRES LTD" width={180} height={54}
-            priority className="h-9 w-auto object-contain" />
+          <Image
+            src={LOGO}
+            alt="KOSRES LTD"
+            width={200}
+            height={90}
+            priority
+            className="h-14 w-auto object-contain"
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -84,7 +96,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* ── Row 2: Services bar — always visible on desktop ── */}
+      {/* ── Row 2: Services bar ── */}
       <div className="hidden md:block bg-[oklch(0.97_0.005_80)] border-b border-border/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex items-center gap-1 py-1.5 overflow-x-auto">
@@ -116,8 +128,6 @@ export default function Navbar() {
       {/* ── Mobile menu ── */}
       {open && (
         <div className="md:hidden bg-white border-t border-border overflow-y-auto max-h-[82vh]">
-
-          {/* Services grid */}
           <div className="px-4 pt-4 pb-3">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Our Services</p>
             <div className="grid grid-cols-2 gap-2">
@@ -133,8 +143,6 @@ export default function Navbar() {
               ))}
             </div>
           </div>
-
-          {/* Main links */}
           <div className="px-4 py-3 border-t border-border space-y-1">
             <Link href="/properties" onClick={() => setOpen(false)}
               className="block py-2.5 px-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-muted transition-colors">
