@@ -5,17 +5,17 @@ import { Receipt, Calculator, FileCheck, Scale } from "lucide-react"
 const ACCENT = "#3D2B1F"
 
 const PROPERTY_TYPE_GROUPS = [
-  { groupLabel: "RESIDENTIAL", items: ["Flats", "Single Family Home", "Town House", "Duplex", "Villa", "G+1"] },
-  { groupLabel: "COMMERCIAL",  items: ["Office", "Shop", "Showroom", "Hotel", "Guest House", "Bar & Restaurant", "Fuel Station", "Factory", "Distribution Center", "Commercial Land"] },
-  { groupLabel: "AGRICULTURAL",items: ["Farmland", "Crop Plantation", "Green House"] },
-  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land", "Factory", "Warehouse", "Distribution Center"] },
+  { groupLabel: "RESIDENTIAL", items: ["Flats","Single Family Home","Town House","Duplex","Villa","G+1"] },
+  { groupLabel: "COMMERCIAL",  items: ["Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station","Factory","Distribution Center","Commercial Land"] },
+  { groupLabel: "AGRICULTURAL",items: ["Farmland","Crop Plantation","Green House"] },
+  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land","Factory","Warehouse","Distribution Center"] },
 ]
 
 const highlights = [
-  { icon: Receipt,    title: "Full Compliance",     desc: "We ensure all your property tax obligations are met accurately and on time." },
-  { icon: Calculator, title: "Liability Assessment", desc: "Precise calculation of your taxable amounts across all property types." },
-  { icon: FileCheck,  title: "Declaration Filing",  desc: "We prepare and file your property tax declarations with the relevant authorities." },
-  { icon: Scale,      title: "Dispute Resolution",  desc: "Expert guidance on appeals, disputes and documentation requirements." },
+  { icon: Receipt,    title: "Full Compliance",      desc: "We ensure all your property tax obligations are met accurately and on time." },
+  { icon: Calculator, title: "Liability Assessment",  desc: "Precise calculation of your taxable amounts across all property types." },
+  { icon: FileCheck,  title: "Declaration Filing",   desc: "We prepare and file your property tax declarations with the relevant authorities." },
+  { icon: Scale,      title: "Dispute Resolution",   desc: "Expert guidance on appeals, disputes and documentation requirements." },
 ]
 
 export default function TaxConsultingPage() {
@@ -27,6 +27,7 @@ export default function TaxConsultingPage() {
       breadcrumb="Property Tax Consulting"
       description="KOSRES LTD assists property owners in identifying applicable property taxes, assessing outstanding tax liabilities, determining taxable amounts, preparing and filing property tax declarations, and ensuring timely payment of property taxes."
     >
+      {/* Highlights */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
         {highlights.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
@@ -39,27 +40,24 @@ export default function TaxConsultingPage() {
         ))}
       </div>
 
-      <div className="max-w-5xl">
-        <h2 className="text-xl font-black mb-6 text-slate-800">Request Tax Consulting</h2>
-        <ServiceRequestForm
-          accentColor={ACCENT}
-          serviceTitle="Property Tax Consulting"
-          waMessagePrefix="Hello KOSRES, I need property tax consulting services."
-          columnHeaders={["Your Name", "Email Address", "Contact", "Asset Type", "Type of Property Tax", "UPI", "Request"]}
-          fields={[
-            // ── Identity first ──
-            { name: "name",    label: "Your Name",     type: "text",  required: true, placeholder: "Full name" },
-            { name: "email",   label: "Email Address", type: "email", required: true, placeholder: "your@email.com" },
-            { name: "contact", label: "Contact",       type: "tel",   required: true, placeholder: "+250 7XX XXX XXX" },
-            // ── Service fields ──
-            { name: "assetType", label: "Asset Type",                    type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
-            { name: "taxType",   label: "Select Type of Property Tax",   type: "select",         required: true,
-              options: ["Immovable Property Tax","Tax on Sale of Immovable Property","Rental Income Tax","Land Lease or Lease Fees"] },
-            { name: "upi",     label: "UPI",                             type: "text",            placeholder: "Type UPI" },
-            { name: "request", label: "Request for Property Tax Consulting", type: "text",        placeholder: "Your request" },
-          ]}
-        />
-      </div>
+      {/* Form */}
+      <h2 className="text-xl font-black mb-6 text-slate-800">Request Tax Consulting</h2>
+      <ServiceRequestForm
+        accentColor={ACCENT}
+        serviceTitle="Property Tax Consulting"
+        waMessagePrefix="Hello KOSRES, I need property tax consulting services."
+        fields={[
+          { name: "name",      label: "Your Name",     type: "text",  required: true, placeholder: "Full name" },
+          { name: "email",     label: "Email Address", type: "email", required: true, placeholder: "your@email.com" },
+          { name: "contact",   label: "Contact",       type: "tel",   required: true, placeholder: "+250 7XX XXX XXX" },
+          { name: "assetType", label: "Asset Type",    type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
+          { name: "taxType",   label: "Type of Property Tax", type: "select", required: true,
+            options: ["Immovable Property Tax","Tax on Sale of Immovable Property","Rental Income Tax","Land Lease or Lease Fees"] },
+          { name: "upi",       label: "UPI (if available)", type: "text", placeholder: "e.g. 1/05/01/01/0001" },
+          { name: "request",   label: "Describe your tax situation or question", type: "textarea", required: true,
+            placeholder: "Provide details about your property, the tax issue you're facing, any outstanding liabilities, and what specific help you need from our tax consultants…", colSpan: "full" },
+        ]}
+      />
     </ServiceLayout>
   )
 }

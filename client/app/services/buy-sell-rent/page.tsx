@@ -6,16 +6,16 @@ import { Home, Key, Clock, ChevronRight } from "lucide-react"
 const ACCENT = "#7B1113"
 
 const PROPERTY_TYPE_GROUPS = [
-  { groupLabel: "RESIDENTIAL", items: ["Flats", "Single Family Home", "Town House", "Duplex", "Villa", "G+1"] },
-  { groupLabel: "COMMERCIAL",  items: ["Office", "Shop", "Showroom", "Hotel", "Guest House", "Bar & Restaurant", "Fuel Station", "Factory", "Distribution Center", "Commercial Land"] },
-  { groupLabel: "AGRICULTURAL",items: ["Farmland", "Crop Plantation", "Green House"] },
-  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land", "Factory", "Warehouse", "Distribution Center"] },
+  { groupLabel: "RESIDENTIAL", items: ["Flats","Single Family Home","Town House","Duplex","Villa","G+1"] },
+  { groupLabel: "COMMERCIAL",  items: ["Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station","Factory","Distribution Center","Commercial Land"] },
+  { groupLabel: "AGRICULTURAL",items: ["Farmland","Crop Plantation","Green House"] },
+  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land","Factory","Warehouse","Distribution Center"] },
 ]
 
 const highlights = [
-  { icon: Home,  title: "For Property Owners", desc: "We help you secure qualified buyers and tenants quickly, ensuring smooth transactions and best market value." },
+  { icon: Home,  title: "For Property Owners",  desc: "We help you secure qualified buyers and tenants quickly, ensuring smooth transactions and best market value." },
   { icon: Key,   title: "For Buyers & Renters", desc: "We connect you with suitable properties matching your budget, preferences and investment objectives." },
-  { icon: Clock, title: "Short Stay",           desc: "Daily, weekly and monthly furnished options for business travellers and short-term guests across Kigali." },
+  { icon: Clock, title: "Short Stay",            desc: "Daily, weekly and monthly furnished options for business travellers and short-term guests across Kigali." },
 ]
 
 export default function BuySellRentPage() {
@@ -27,6 +27,7 @@ export default function BuySellRentPage() {
       breadcrumb="Buy / Sell & Rent"
       description="KOSRES LTD provides professional property buying, selling, and rental services designed to make real estate transactions simple, efficient, and rewarding. With extensive market knowledge, professional guidance, and commitment to client satisfaction, we serve as a trusted partner for residential, commercial, and investment properties across Rwanda."
     >
+      {/* Highlights */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
         {highlights.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -39,6 +40,7 @@ export default function BuySellRentPage() {
         ))}
       </div>
 
+      {/* CTA banner */}
       <div className="mb-14 rounded-2xl p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-4" style={{ backgroundColor: ACCENT }}>
         <div>
           <h2 className="text-xl font-black mb-1">Browse All Listings</h2>
@@ -51,26 +53,25 @@ export default function BuySellRentPage() {
         </Link>
       </div>
 
-      <div className="max-w-5xl">
-        <h2 className="text-xl font-black mb-6 text-slate-800">Submit a Property Request</h2>
-        <ServiceRequestForm
-          accentColor={ACCENT}
-          serviceTitle="Buy / Sell & Rent"
-          waMessagePrefix="Hello KOSRES, I have a property enquiry."
-          columnHeaders={["Your Name", "Email Address", "Contact", "Search Location", "Offer Type", "Property Type"]}
-          fields={[
-            // ── Identity first ──
-            { name: "name",           label: "Your Name",             type: "text",           required: true, placeholder: "Full name" },
-            { name: "email",          label: "Email Address",         type: "email",          required: true, placeholder: "your@email.com" },
-            { name: "contact",        label: "Contact",               type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
-            // ── Service fields ──
-            { name: "searchLocation", label: "Search Location",       type: "text",           required: true, placeholder: "District, Sector, Cell, Village" },
-            { name: "offerType",      label: "Select Offer Type",     type: "select",         required: true,
-              options: ["Rent","Sale","Buy","Short-term Rent"] },
-            { name: "propertyType",   label: "Select Property Type",  type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
-          ]}
-        />
-      </div>
+      {/* Form */}
+      <h2 className="text-xl font-black mb-6 text-slate-800">Submit a Property Request</h2>
+      <ServiceRequestForm
+        accentColor={ACCENT}
+        serviceTitle="Buy / Sell & Rent"
+        waMessagePrefix="Hello KOSRES, I have a property enquiry."
+        fields={[
+          { name: "name",           label: "Your Name",         type: "text",           required: true, placeholder: "Full name" },
+          { name: "email",          label: "Email Address",     type: "email",          required: true, placeholder: "your@email.com" },
+          { name: "contact",        label: "Contact",           type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
+          { name: "offerType",      label: "I want to",         type: "select",         required: true,
+            options: ["Buy a Property","Sell my Property","Rent a Property","List for Rent","Short-term Stay"] },
+          { name: "propertyType",   label: "Property Type",     type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
+          { name: "searchLocation", label: "Preferred Location",type: "text",           placeholder: "District, Sector, Cell or Village" },
+          { name: "budget",         label: "Budget / Price",    type: "text",           placeholder: "e.g. 80,000,000 RWF or 500 USD/month" },
+          { name: "request",        label: "Tell us more about what you're looking for", type: "textarea", required: true,
+            placeholder: "Describe the property you need or are offering — size, number of rooms, key features, timeline, and any other important details…", colSpan: "full" },
+        ]}
+      />
     </ServiceLayout>
   )
 }

@@ -5,10 +5,10 @@ import { Scale, FileText, Banknote, ShieldCheck } from "lucide-react"
 const ACCENT = "#1B3A5C"
 
 const PROPERTY_TYPE_GROUPS = [
-  { groupLabel: "RESIDENTIAL", items: ["Flats", "Single Family Home", "Town House", "Duplex", "Villa", "G+1"] },
-  { groupLabel: "COMMERCIAL",  items: ["Office", "Shop", "Showroom", "Hotel", "Guest House", "Bar & Restaurant", "Fuel Station", "Factory", "Distribution Center", "Commercial Land"] },
-  { groupLabel: "AGRICULTURAL",items: ["Farmland", "Crop Plantation", "Green House"] },
-  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land", "Factory", "Warehouse", "Distribution Center"] },
+  { groupLabel: "RESIDENTIAL", items: ["Flats","Single Family Home","Town House","Duplex","Villa","G+1"] },
+  { groupLabel: "COMMERCIAL",  items: ["Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station","Factory","Distribution Center","Commercial Land"] },
+  { groupLabel: "AGRICULTURAL",items: ["Farmland","Crop Plantation","Green House"] },
+  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land","Factory","Warehouse","Distribution Center"] },
 ]
 
 const highlights = [
@@ -39,29 +39,25 @@ export default function ValuationPage() {
         ))}
       </div>
 
-      <div className="max-w-5xl">
-        <h2 className="text-xl font-black mb-6 text-slate-800">Request a Valuation</h2>
-        <ServiceRequestForm
-          accentColor={ACCENT}
-          serviceTitle="Asset Valuation"
-          waMessagePrefix="Hello KOSRES, I need an asset valuation."
-          columnHeaders={["Your Name", "Email Address", "Contact", "Property Type", "Purpose of Valuation", "Locations", "UPI", "Request"]}
-          fields={[
-            // ── Identity first ──
-            { name: "name",             label: "Your Name",            type: "text",           required: true, placeholder: "Full name" },
-            { name: "email",            label: "Email Address",        type: "email",          required: true, placeholder: "your@email.com" },
-            { name: "contact",          label: "Contact",              type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
-            // ── Service fields ──
-            { name: "propertyType",     label: "Property Type",        type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
-            { name: "valuationPurpose", label: "Purpose of Valuation", type: "select",         required: true,
-              options: ["Loan Application","Buy & Sale","Bookkeeping","Expropriation","Insurance","Taxation"] },
-            { name: "district",         label: "Locations",            type: "select",         required: true,
-              options: ["Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Bugesera"] },
-            { name: "upi",              label: "UPI",                  type: "text",           placeholder: "Type UPI" },
-            { name: "request",          label: "Request",              type: "text",           placeholder: "Your request" },
-          ]}
-        />
-      </div>
+      <h2 className="text-xl font-black mb-6 text-slate-800">Request a Valuation</h2>
+      <ServiceRequestForm
+        accentColor={ACCENT}
+        serviceTitle="Asset Valuation"
+        waMessagePrefix="Hello KOSRES, I need an asset valuation."
+        fields={[
+          { name: "name",             label: "Your Name",            type: "text",           required: true, placeholder: "Full name" },
+          { name: "email",            label: "Email Address",        type: "email",          required: true, placeholder: "your@email.com" },
+          { name: "contact",          label: "Contact",              type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
+          { name: "propertyType",     label: "Property Type",        type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
+          { name: "valuationPurpose", label: "Purpose of Valuation", type: "select",         required: true,
+            options: ["Loan Application","Buy & Sale","Bookkeeping","Expropriation","Insurance","Taxation"] },
+          { name: "district",         label: "Location (District)",  type: "select",
+            options: ["Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Bugesera"] },
+          { name: "upi",              label: "UPI (if available)",   type: "text",           placeholder: "e.g. 1/05/01/01/0001" },
+          { name: "request",          label: "Describe the property or asset", type: "textarea", required: true,
+            placeholder: "Provide details about the property or asset to be valued — location, size, construction type, current use and any other relevant information…", colSpan: "full" },
+        ]}
+      />
     </ServiceLayout>
   )
 }

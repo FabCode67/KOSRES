@@ -5,10 +5,10 @@ import { TrendingUp, Target, Shield, BarChart3 } from "lucide-react"
 const ACCENT = "#7B1113"
 
 const PROPERTY_TYPE_GROUPS = [
-  { groupLabel: "RESIDENTIAL", items: ["Flats", "Single Family Home", "Town House", "Duplex", "Villa", "G+1"] },
-  { groupLabel: "COMMERCIAL",  items: ["Office", "Shop", "Showroom", "Hotel", "Guest House", "Bar & Restaurant", "Fuel Station", "Factory", "Distribution Center", "Commercial Land"] },
-  { groupLabel: "AGRICULTURAL",items: ["Farmland", "Crop Plantation", "Green House"] },
-  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land", "Factory", "Warehouse", "Distribution Center"] },
+  { groupLabel: "RESIDENTIAL", items: ["Flats","Single Family Home","Town House","Duplex","Villa","G+1"] },
+  { groupLabel: "COMMERCIAL",  items: ["Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station","Factory","Distribution Center","Commercial Land"] },
+  { groupLabel: "AGRICULTURAL",items: ["Farmland","Crop Plantation","Green House"] },
+  { groupLabel: "INDUSTRIAL",  items: ["Industrial Land","Factory","Warehouse","Distribution Center"] },
 ]
 
 const highlights = [
@@ -39,29 +39,25 @@ export default function InvestPage() {
         ))}
       </div>
 
-      <div className="max-w-5xl">
-        <h2 className="text-xl font-black mb-6 text-slate-800">Find Your Investment Opportunity</h2>
-        <ServiceRequestForm
-          accentColor={ACCENT}
-          serviceTitle="Invest in Kigali Real Estate"
-          waMessagePrefix="Hello KOSRES, I'm interested in a real estate investment opportunity."
-          columnHeaders={["Your Name", "Email Address", "Contact", "Investment Type", "Property Type", "Locations", "Price Range", "Request"]}
-          fields={[
-            // ── Identity first ──
-            { name: "name",           label: "Your Name",       type: "text",           required: true, placeholder: "Full name" },
-            { name: "email",          label: "Email Address",   type: "email",          required: true, placeholder: "your@email.com" },
-            { name: "contact",        label: "Contact",         type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
-            // ── Service fields ──
-            { name: "investmentType", label: "Investment Type", type: "select",         required: true,
-              options: ["Buy Hold and Sell","Buy, Renovate and Resell","Buy to Rent","Green and Smart Properties","Developing Residential House","Developing Industrial House","Developing Commercial Space","Developing Affordable Housing"] },
-            { name: "propertyType",   label: "Property Type",  type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
-            { name: "district",       label: "Locations",      type: "select",         required: true,
-              options: ["Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Gatsibo"] },
-            { name: "priceRange",     label: "Price Range",    type: "text",           placeholder: "Type amount" },
-            { name: "request",        label: "Request",        type: "text",           placeholder: "Your request" },
-          ]}
-        />
-      </div>
+      <h2 className="text-xl font-black mb-6 text-slate-800">Find Your Investment Opportunity</h2>
+      <ServiceRequestForm
+        accentColor={ACCENT}
+        serviceTitle="Invest in Kigali Real Estate"
+        waMessagePrefix="Hello KOSRES, I'm interested in a real estate investment opportunity."
+        fields={[
+          { name: "name",           label: "Your Name",       type: "text",           required: true,  placeholder: "Full name" },
+          { name: "email",          label: "Email Address",   type: "email",          required: true,  placeholder: "your@email.com" },
+          { name: "contact",        label: "Contact",         type: "tel",            required: true,  placeholder: "+250 7XX XXX XXX" },
+          { name: "investmentType", label: "Investment Type", type: "select",         required: true,
+            options: ["Buy Hold and Sell","Buy, Renovate and Resell","Buy to Rent","Green and Smart Properties","Developing Residential House","Developing Industrial House","Developing Commercial Space","Developing Affordable Housing"] },
+          { name: "propertyType",   label: "Property Type",  type: "grouped-select", required: true,  groups: PROPERTY_TYPE_GROUPS },
+          { name: "district",       label: "Preferred Location", type: "select",
+            options: ["Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Gatsibo"] },
+          { name: "priceRange",     label: "Price Range (RWF)", type: "text",         placeholder: "e.g. 50,000,000 – 200,000,000" },
+          { name: "request",        label: "Tell us about your investment goals", type: "textarea", required: true,
+            placeholder: "Describe your investment goals, timeline, expected returns and any specific requirements…", colSpan: "full" },
+        ]}
+      />
     </ServiceLayout>
   )
 }

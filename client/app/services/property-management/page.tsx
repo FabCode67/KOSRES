@@ -5,10 +5,10 @@ import { Users, DollarSign, Wrench, BarChart3 } from "lucide-react"
 const ACCENT = "#1C2B4B"
 
 const ASSET_TYPE_GROUPS = [
-  { groupLabel: "RESIDENTIAL",  items: ["Apartment Buildings"] },
-  { groupLabel: "COMMERCIAL",   items: ["Office Buildings","Retail Shops","Shopping Malls","Hotels","Motels","Guest Houses","Fuel Stations","Bar & Restaurant"] },
-  { groupLabel: "INDUSTRIAL",   items: ["Warehouses","Distribution Centers","Industrial Facilities","Factories"] },
-  { groupLabel: "SPECIAL USE",  items: ["Religious Properties","Government-Owned Buildings","Hospitals and Healthcare Facilities","Schools and Educational Facilities"] },
+  { groupLabel: "RESIDENTIAL", items: ["Apartment Buildings"] },
+  { groupLabel: "COMMERCIAL",  items: ["Office Buildings","Retail Shops","Shopping Malls","Hotels","Motels","Guest Houses","Fuel Stations","Bar & Restaurant"] },
+  { groupLabel: "INDUSTRIAL",  items: ["Warehouses","Distribution Centers","Industrial Facilities","Factories"] },
+  { groupLabel: "SPECIAL USE", items: ["Religious Properties","Government-Owned Buildings","Hospitals and Healthcare Facilities","Schools and Educational Facilities"] },
 ]
 
 const highlights = [
@@ -27,6 +27,7 @@ export default function PropertyManagementPage() {
       breadcrumb="Property Management"
       description="KOSRES LTD offers comprehensive property management services designed to protect your investment, maximize rental income, and enhance the long-term value of your property. Our proactive approach ensures properties are well-maintained and rental performance is continuously monitored to achieve sustainable income growth."
     >
+      {/* Highlights */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
         {highlights.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
@@ -39,27 +40,24 @@ export default function PropertyManagementPage() {
         ))}
       </div>
 
-      <div className="max-w-5xl">
-        <h2 className="text-xl font-black mb-6 text-slate-800">Request Property Management</h2>
-        <ServiceRequestForm
-          accentColor={ACCENT}
-          serviceTitle="Property Management"
-          waMessagePrefix="Hello KOSRES, I need property management services."
-          columnHeaders={["Your Name", "Email Address", "Contact", "Management Service", "Asset Type", "UPI", "Request"]}
-          fields={[
-            // ── Identity first ──
-            { name: "name",    label: "Your Name",     type: "text",  required: true, placeholder: "Full name" },
-            { name: "email",   label: "Email Address", type: "email", required: true, placeholder: "your@email.com" },
-            { name: "contact", label: "Contact",       type: "tel",   required: true, placeholder: "+250 7XX XXX XXX" },
-            // ── Service fields ──
-            { name: "managementService", label: "Select Property Management Services", type: "select", required: true,
-              options: ["Tenant Sourcing","Rent Collection and Management","Lease Preparation and Administration","Property Maintenance and Repairs Coordination","Property Inspections and Condition Reporting","Tenant Relationship Management and Dispute Resolution","Service Charge and Utility Management","Property Marketing and Vacancy Management","Financial Reporting and Budget Management","Property Tax and Regulatory Compliance Support","Asset Performance Monitoring and Value Enhancement"] },
-            { name: "assetType", label: "Select Asset Type", type: "grouped-select", required: true, groups: ASSET_TYPE_GROUPS },
-            { name: "upi",     label: "UPI",     type: "text", placeholder: "Type UPI" },
-            { name: "request", label: "Request", type: "text", placeholder: "Your request" },
-          ]}
-        />
-      </div>
+      {/* Form */}
+      <h2 className="text-xl font-black mb-6 text-slate-800">Request Property Management</h2>
+      <ServiceRequestForm
+        accentColor={ACCENT}
+        serviceTitle="Property Management"
+        waMessagePrefix="Hello KOSRES, I need property management services."
+        fields={[
+          { name: "name",              label: "Your Name",     type: "text",  required: true, placeholder: "Full name" },
+          { name: "email",             label: "Email Address", type: "email", required: true, placeholder: "your@email.com" },
+          { name: "contact",           label: "Contact",       type: "tel",   required: true, placeholder: "+250 7XX XXX XXX" },
+          { name: "managementService", label: "Management Service Needed", type: "select", required: true,
+            options: ["Tenant Sourcing","Rent Collection and Management","Lease Preparation and Administration","Property Maintenance and Repairs Coordination","Property Inspections and Condition Reporting","Tenant Relationship Management and Dispute Resolution","Service Charge and Utility Management","Property Marketing and Vacancy Management","Financial Reporting and Budget Management","Property Tax and Regulatory Compliance Support","Asset Performance Monitoring and Value Enhancement"] },
+          { name: "assetType",         label: "Asset Type",   type: "grouped-select", required: true, groups: ASSET_TYPE_GROUPS },
+          { name: "upi",               label: "UPI (if available)", type: "text", placeholder: "e.g. 1/05/01/01/0001" },
+          { name: "request",           label: "Tell us about your property management needs", type: "textarea", required: true,
+            placeholder: "Describe the property, its current status, number of units, any existing tenants, and what specific management services you need from KOSRES LTD…", colSpan: "full" },
+        ]}
+      />
     </ServiceLayout>
   )
 }
