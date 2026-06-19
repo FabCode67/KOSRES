@@ -7,28 +7,35 @@ import PropertyCard from "@/components/PropertyCard"
 import { getProperties } from "@/lib/api"
 import type { ApiProperty } from "@/lib/api"
 
-const DISTRICTS = ["All","Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Bugesera"]
+const DISTRICTS = [
+  "All",
+  "Gasabo","Kicukiro","Nyarugenge",
+  "Burera","Gakenke","Gicumbi","Musanze","Rulindo",
+  "Bugesera","Gatsibo","Kayonza","Kirehe","Ngoma","Nyagatare","Rwamagana",
+  "Gisagara","Huye","Muhanga","Nyamagabe","Nyanza","Nyaruguru","Ruhango",
+  "Karongi","Ngororero","Nyabihu","Nyamasheke","Rubavu","Rusizi","Rutsiro",
+]
 const OFFER_TYPES = [
-  { value: "all",       label: "All"        },
-  { value: "sale",      label: "For Sale"   },
-  { value: "rent",      label: "For Rent"   },
-  { value: "short_stay",label: "Short Stay" },
+  { value: "all",        label: "All"        },
+  { value: "sale",       label: "For Sale"   },
+  { value: "rent",       label: "For Rent"   },
+  { value: "short_stay", label: "Short Stay" },
 ]
 const CATEGORIES = [
-  { value: "all",         label: "All Types"    },
-  { value: "residential", label: "Residential"  },
-  { value: "commercial",  label: "Commercial"   },
-  { value: "agricultural",label: "Agricultural" },
-  { value: "industrial",  label: "Industrial"   },
+  { value: "all",          label: "All Types"    },
+  { value: "residential",  label: "Residential"  },
+  { value: "commercial",   label: "Commercial"   },
+  { value: "agricultural", label: "Agricultural" },
+  { value: "industrial",   label: "Industrial"   },
 ]
 
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<ApiProperty[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [search, setSearch]         = useState("")
-  const [offer, setOffer]           = useState("all")
-  const [category, setCategory]     = useState("all")
-  const [district, setDistrict]     = useState("All")
+  const [loading,    setLoading]    = useState(true)
+  const [search,     setSearch]     = useState("")
+  const [offer,      setOffer]      = useState("all")
+  const [category,   setCategory]   = useState("all")
+  const [district,   setDistrict]   = useState("All")
 
   useEffect(() => {
     getProperties({ limit: 200 })
@@ -43,7 +50,7 @@ export default function PropertiesPage() {
       if (q && !p.title.toLowerCase().includes(q) &&
           !p.sector.toLowerCase().includes(q) &&
           !p.propertyType.toLowerCase().includes(q)) return false
-      if (offer    !== "all" && p.offerType !== offer)   return false
+      if (offer    !== "all" && p.offerType !== offer)    return false
       if (category !== "all" && p.category  !== category) return false
       if (district !== "All" && p.district  !== district) return false
       return true
@@ -55,7 +62,8 @@ export default function PropertiesPage() {
   return (
     <>
       <Navbar />
-      <div className="pt-24 min-h-screen max-w-7xl mx-auto px-4 sm:px-6 pb-20">
+      {/* pt-36 = 144px — clears the 3-row fixed navbar (~132px) */}
+      <div className="pt-36 min-h-screen max-w-7xl mx-auto px-4 sm:px-6 pb-20">
 
         <div className="mb-8">
           <p className="text-[oklch(0.42_0.19_25)] text-sm font-semibold tracking-widest uppercase mb-1">Explore</p>
@@ -93,9 +101,7 @@ export default function PropertiesPage() {
           </div>
         ) : filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map(p => (
-              <PropertyCard key={p.id} property={p as any} />
-            ))}
+            {filtered.map(p => <PropertyCard key={p.id} property={p as any} />)}
           </div>
         ) : (
           <div className="text-center py-24 text-muted-foreground">

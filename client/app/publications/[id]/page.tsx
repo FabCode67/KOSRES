@@ -22,7 +22,8 @@ export default async function PublicationDetailPage({ params }: Props) {
   return (
     <>
       <Navbar />
-      <div className="pt-32 min-h-screen bg-[oklch(0.97_0.005_80)]">
+      {/* pt-36 = 144px — clears 3-row fixed navbar (~132px) */}
+      <div className="pt-36 min-h-screen bg-[oklch(0.97_0.005_80)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-20">
 
           <Link href="/publications"
@@ -31,7 +32,6 @@ export default async function PublicationDetailPage({ params }: Props) {
             Back to publications
           </Link>
 
-          {/* Cover image */}
           {pub.coverImage && (
             <div className="relative rounded-2xl overflow-hidden aspect-[16/7] mb-8 shadow-md">
               <Image src={pub.coverImage} alt={pub.title} fill className="object-cover" sizes="896px" priority />
@@ -39,7 +39,6 @@ export default async function PublicationDetailPage({ params }: Props) {
             </div>
           )}
 
-          {/* Meta */}
           <div className="flex flex-wrap items-center gap-3 mb-4 text-xs text-muted-foreground">
             {pub.category && (
               <span className="flex items-center gap-1.5 bg-[oklch(0.42_0.19_25)] text-white px-3 py-1 rounded-full font-semibold">
@@ -51,21 +50,16 @@ export default async function PublicationDetailPage({ params }: Props) {
               {new Date(pub.createdAt).toLocaleDateString("en-RW", { year: "numeric", month: "long", day: "numeric" })}
             </span>
             {pub.author && (
-              <span className="flex items-center gap-1.5">
-                <User size={12} /> {pub.author}
-              </span>
+              <span className="flex items-center gap-1.5"><User size={12} /> {pub.author}</span>
             )}
           </div>
 
-          {/* Title */}
           <h1 className="text-3xl sm:text-4xl font-black text-slate-800 leading-tight mb-4">{pub.title}</h1>
 
-          {/* Excerpt */}
           <p className="text-lg text-muted-foreground leading-relaxed mb-8 border-l-4 border-[oklch(0.42_0.19_25)] pl-4 italic">
             {pub.excerpt}
           </p>
 
-          {/* Document download banner */}
           {pub.documentUrl && (
             <a href={pub.documentUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-4 bg-[oklch(0.12_0.01_250)] text-white rounded-2xl p-5 mb-8 hover:bg-[oklch(0.18_0.01_250)] transition-colors group">
@@ -82,14 +76,12 @@ export default async function PublicationDetailPage({ params }: Props) {
             </a>
           )}
 
-          {/* Body */}
           <div className="bg-white rounded-2xl border border-border p-8 shadow-sm">
             <div className="prose prose-slate max-w-none text-sm leading-relaxed whitespace-pre-line text-slate-700">
               {pub.body}
             </div>
           </div>
 
-          {/* Related */}
           {related.length > 0 && (
             <div className="mt-16">
               <h2 className="text-2xl font-black mb-6 text-slate-800">Related Publications</h2>

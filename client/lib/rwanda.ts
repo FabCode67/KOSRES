@@ -4,35 +4,11 @@
  */
 
 export const RWANDA_DISTRICTS = [
-  "Gasabo",
-  "Kicukiro",
-  "Nyarugenge",
-  "Burera",
-  "Gakenke",
-  "Gicumbi",
-  "Musanze",
-  "Rulindo",
-  "Bugesera",
-  "Gatsibo",
-  "Kayonza",
-  "Kirehe",
-  "Ngoma",
-  "Nyagatare",
-  "Rwamagana",
-  "Gisagara",
-  "Huye",
-  "Muhanga",
-  "Nyamagabe",
-  "Nyanza",
-  "Nyaruguru",
-  "Ruhango",
-  "Karongi",
-  "Ngororero",
-  "Nyabihu",
-  "Nyamasheke",
-  "Rubavu",
-  "Rusizi",
-  "Rutsiro",
+  "Gasabo", "Kicukiro", "Nyarugenge",
+  "Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo",
+  "Bugesera", "Gatsibo", "Kayonza", "Kirehe", "Ngoma", "Nyagatare", "Rwamagana",
+  "Gisagara", "Huye", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango",
+  "Karongi", "Ngororero", "Nyabihu", "Nyamasheke", "Rubavu", "Rusizi", "Rutsiro",
 ]
 
 /**
@@ -62,7 +38,7 @@ export const RWANDA_DISTRICTS_BY_PROVINCE = [
 ]
 
 /**
- * All property types grouped by category.
+ * All property / asset types grouped by category.
  * Used across service request forms.
  */
 export const PROPERTY_TYPE_GROUPS = [
@@ -86,4 +62,40 @@ export const PROPERTY_TYPE_GROUPS = [
     groupLabel: "INDUSTRIAL",
     items: ["Industrial Land", "Factory", "Warehouse", "Distribution Center"],
   },
+  {
+    groupLabel: "BIOLOGICAL ASSETS",
+    items: [
+      "Livestock & Cattle",
+      "Poultry Farm",
+      "Fish Farm / Aquaculture",
+      "Timber / Forestry Plantation",
+      "Fruit Orchard",
+      "Tea / Coffee Plantation",
+      "Flower Farm",
+      "Beehives / Apiculture",
+      "Nursery / Plant Nursery",
+      "Other Biological Asset",
+    ],
+  },
+]
+
+/**
+ * Car brands available for buy/sell/rent services.
+ */
+export const CAR_BRANDS = [
+  "Toyota",
+  "KIA",
+  "Volkswagen (VW)",
+  "Hyundai",
+  "BMW",
+  "BYD",
+  "KABISA",
+  "Tesla",
+  "LONGTAI",
+  "Dongfeng",
+  "Suzuki",
+  "Nissan",
+  "Renault",
+  "Ford",
+  "Other",
 ]

@@ -1,7 +1,7 @@
 import ServiceLayout from "@/components/ServiceLayout"
 import ServiceRequestForm from "@/components/ServiceRequestForm"
 import { Car, Key, MapPin, Shield } from "lucide-react"
-import { RWANDA_DISTRICTS_BY_PROVINCE } from "@/lib/rwanda"
+import { RWANDA_DISTRICTS_BY_PROVINCE, CAR_BRANDS } from "@/lib/rwanda"
 
 const ACCENT = "#1C2B4B"
 
@@ -45,6 +45,20 @@ export default function CarsPage() {
         ))}
       </div>
 
+      {/* ── Car Brands showcase ── */}
+      <div className="mb-14">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Car Brands We Deal In</p>
+        <div className="flex flex-wrap gap-2">
+          {CAR_BRANDS.filter(b => b !== "Other").map(brand => (
+            <span key={brand}
+              className="text-xs font-bold px-3.5 py-2 rounded-full border-2 text-slate-700 bg-white shadow-sm hover:border-[#1C2B4B] hover:text-[#1C2B4B] transition-colors"
+              style={{ borderColor: "#1C2B4B30" }}>
+              {brand}
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* ── Section 1: Car Rental ── */}
       <div className="mb-14">
         <div className="flex items-center gap-3 mb-6">
@@ -72,9 +86,10 @@ export default function CarsPage() {
             { name: "name",        label: "Your Name",          type: "text",           required: true, placeholder: "Full name" },
             { name: "email",       label: "Email Address",      type: "email",          placeholder: "your@email.com" },
             { name: "contact",     label: "Contact",            type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
+            { name: "carBrand",    label: "Preferred Brand",    type: "select",         options: CAR_BRANDS },
             { name: "vehicleType", label: "Vehicle Type",       type: "select",         required: true, options: CAR_TYPES },
-            { name: "district",    label: "Pickup District",    type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
             { name: "fuelType",    label: "Fuel Preference",    type: "select",         options: FUEL_TYPES },
+            { name: "district",    label: "Pickup District",    type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
             { name: "duration",    label: "Rental Duration",    type: "text",           placeholder: "e.g. 3 days, 1 week, 1 month" },
             { name: "request",     label: "Additional Details", type: "textarea",
               placeholder: "Preferred dates, pickup & drop-off locations, special requirements or any other information…", colSpan: "full" },
@@ -102,11 +117,12 @@ export default function CarsPage() {
             { name: "email",    label: "Email Address",        type: "email",   placeholder: "your@email.com" },
             { name: "contact",  label: "Contact",              type: "tel",     required: true, placeholder: "+250 7XX XXX XXX" },
             { name: "intent",   label: "I want to",            type: "select",  required: true, options: ["Buy a Car","Sell my Car","Both — Buy & Sell"] },
+            { name: "carBrand", label: "Car Brand",            type: "select",  required: true, options: CAR_BRANDS },
             { name: "carType",  label: "Vehicle Type",         type: "select",  required: true, options: SALE_TYPES },
             { name: "fuelType", label: "Fuel Type",            type: "select",  options: FUEL_TYPES },
             { name: "budget",   label: "Budget / Price (RWF)", type: "text",    placeholder: "e.g. 15,000,000 RWF" },
             { name: "request",  label: "Car Details / Notes",  type: "textarea",
-              placeholder: "Make, model, year, mileage, condition, colour and any other details about the vehicle you want to buy or sell…", colSpan: "full" },
+              placeholder: "Brand, model, year, mileage, condition, colour and any other details about the vehicle you want to buy or sell…", colSpan: "full" },
           ]}
         />
       </div>
@@ -137,16 +153,16 @@ export default function CarsPage() {
           serviceTitle="Taxi & Transfer"
           waMessagePrefix="Hello KOSRES, I need a taxi or transfer service."
           fields={[
-            { name: "name",        label: "Your Name",          type: "text",           required: true, placeholder: "Full name" },
-            { name: "email",       label: "Email Address",      type: "email",          placeholder: "your@email.com" },
-            { name: "contact",     label: "Contact",            type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
-            { name: "serviceType", label: "Service Type",       type: "select",         required: true, options: TAXI_SERVICES },
-            { name: "from",        label: "Pickup Point",       type: "text",           required: true, placeholder: "e.g. Kigali International Airport" },
-            { name: "to",          label: "Destination",        type: "text",           required: true, placeholder: "e.g. Kimihurura, Kigali" },
-            { name: "district",    label: "Destination District",type: "grouped-select",groups: RWANDA_DISTRICTS_BY_PROVINCE },
-            { name: "date",        label: "Date & Time",        type: "text",           placeholder: "e.g. 20 June 2026, 08:00" },
-            { name: "passengers",  label: "No. of Passengers",  type: "select",         options: ["1","2","3","4","5","6","7+"] },
-            { name: "request",     label: "Additional Notes",   type: "textarea",
+            { name: "name",        label: "Your Name",           type: "text",           required: true, placeholder: "Full name" },
+            { name: "email",       label: "Email Address",       type: "email",          placeholder: "your@email.com" },
+            { name: "contact",     label: "Contact",             type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
+            { name: "serviceType", label: "Service Type",        type: "select",         required: true, options: TAXI_SERVICES },
+            { name: "from",        label: "Pickup Point",        type: "text",           required: true, placeholder: "e.g. Kigali International Airport" },
+            { name: "to",          label: "Destination",         type: "text",           required: true, placeholder: "e.g. Kimihurura, Kigali" },
+            { name: "district",    label: "Destination District", type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
+            { name: "date",        label: "Date & Time",         type: "text",           placeholder: "e.g. 20 June 2026, 08:00" },
+            { name: "passengers",  label: "No. of Passengers",   type: "select",         options: ["1","2","3","4","5","6","7+"] },
+            { name: "request",     label: "Additional Notes",    type: "textarea",
               placeholder: "Flight number, amount of luggage, child seats, accessibility needs, or any other special requests…", colSpan: "full" },
           ]}
         />

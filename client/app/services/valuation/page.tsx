@@ -7,8 +7,8 @@ const ACCENT = "#1B3A5C"
 
 const highlights = [
   { icon: Scale,       title: "Independent & Credible",  desc: "Valuations conducted in accordance with recognized international professional standards." },
-  { icon: Banknote,    title: "All Asset Classes",        desc: "Real estate, plant & machinery, vehicles, equipment, infrastructure and other tangible assets." },
-  { icon: FileText,    title: "Compliant Reports",        desc: "Reliable valuation reports accepted by banks, courts, government agencies and insurers." },
+  { icon: Banknote,    title: "All Asset Classes",        desc: "Real estate, plant & machinery, vehicles, biological assets, equipment and other tangible assets." },
+  { icon: FileText,    title: "Compliant Reports",        desc: "Reliable valuation reports accepted by banks, embassies, courts, government agencies and insurers." },
   { icon: ShieldCheck, title: "Trusted by Institutions",  desc: "Used for financial reporting, loan security, insurance, acquisition, taxation and dispute resolution." },
 ]
 
@@ -42,9 +42,17 @@ export default function ValuationPage() {
           { name: "name",             label: "Your Name",            type: "text",           required: true, placeholder: "Full name" },
           { name: "email",            label: "Email Address",        type: "email",          required: true, placeholder: "your@email.com" },
           { name: "contact",          label: "Contact",              type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
-          { name: "propertyType",     label: "Property Type",        type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
+          { name: "propertyType",     label: "Asset Type",           type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
           { name: "valuationPurpose", label: "Purpose of Valuation", type: "select",         required: true,
-            options: ["Loan Application","Buy & Sale","Bookkeeping","Expropriation","Insurance","Taxation"] },
+            options: [
+              "Loan Application",
+              "Buy & Sale",
+              "Bookkeeping",
+              "Expropriation",
+              "Insurance",
+              "Taxation",
+              "Visa Application",
+            ]},
           { name: "district",         label: "District / Location",  type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
           { name: "upi",              label: "UPI (if available)",   type: "text",           placeholder: "e.g. 1/05/01/01/0001" },
           { name: "request",          label: "Describe the property or asset", type: "textarea", required: true,

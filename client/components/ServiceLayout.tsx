@@ -19,9 +19,12 @@ export default function ServiceLayout({
     <>
       <Navbar />
 
-      {/* ── Hero — pt-32 accounts for 3-row navbar ── */}
-      <section className="pt-32" style={{ backgroundColor: accentColor }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-0 pt-10">
+      {/* ── Hero ──
+           Navbar = contact bar (~28px) + main row (64px) + services bar (~40px) = ~132px
+           Using pt-36 (144px) gives 12px breathing room above the content.  ── */}
+      <section className="pt-36" style={{ backgroundColor: accentColor }}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-0 pt-8">
+          {/* Breadcrumb */}
           <p className="flex items-center gap-1.5 text-xs text-white/50 mb-5">
             <Link href="/" className="hover:text-white/90 transition-colors">Home</Link>
             <ChevronRight size={11} />
@@ -29,11 +32,15 @@ export default function ServiceLayout({
             <ChevronRight size={11} />
             <span className="text-white/80">{breadcrumb}</span>
           </p>
-          <p className="text-amber-300 text-[11px] font-bold tracking-[0.22em] uppercase mb-3">{subtitle}</p>
+          <p className="text-amber-300 text-[11px] font-bold tracking-[0.22em] uppercase mb-3">
+            {subtitle}
+          </p>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight max-w-3xl mb-4">
             {title}
           </h1>
-          <p className="text-white/70 text-sm leading-relaxed max-w-2xl pb-12">{description}</p>
+          <p className="text-white/70 text-sm leading-relaxed max-w-2xl pb-12">
+            {description}
+          </p>
         </div>
       </section>
 

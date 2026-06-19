@@ -12,10 +12,10 @@ export default async function PublicationsPage() {
   return (
     <>
       <Navbar />
-      <div className="pt-32 min-h-screen bg-[oklch(0.97_0.005_80)]">
+      {/* pt-36 = 144px — clears 3-row fixed navbar (~132px) */}
+      <div className="pt-36 min-h-screen bg-[oklch(0.97_0.005_80)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
 
-          {/* Header */}
           <div className="mb-12 text-center">
             <p className="text-[oklch(0.42_0.19_25)] text-sm font-bold tracking-widest uppercase mb-2">Knowledge Hub</p>
             <h1 className="text-4xl font-black text-slate-800 mb-3">Publications</h1>
@@ -35,7 +35,6 @@ export default async function PublicationsPage() {
               {pubs.map(pub => (
                 <article key={pub.id}
                   className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden group hover:shadow-lg transition-all duration-300 flex flex-col">
-                  {/* Cover */}
                   <Link href={`/publications/${pub.id}`} className="relative block aspect-[16/9] bg-slate-100 overflow-hidden">
                     {pub.coverImage
                       ? <Image src={pub.coverImage} alt={pub.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width:768px)100vw,(max-width:1200px)50vw,33vw" />
@@ -46,9 +45,7 @@ export default async function PublicationsPage() {
                       )
                     }
                     {pub.featured && (
-                      <span className="absolute top-3 left-3 text-[10px] font-bold bg-amber-400 text-black px-2.5 py-1 rounded-full">
-                        ⭐ Featured
-                      </span>
+                      <span className="absolute top-3 left-3 text-[10px] font-bold bg-amber-400 text-black px-2.5 py-1 rounded-full">⭐ Featured</span>
                     )}
                     {pub.documentUrl && (
                       <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold bg-black/60 text-white px-2.5 py-1 rounded-full">
@@ -56,8 +53,6 @@ export default async function PublicationsPage() {
                       </span>
                     )}
                   </Link>
-
-                  {/* Body */}
                   <div className="p-5 flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       {pub.category && (
@@ -70,17 +65,12 @@ export default async function PublicationsPage() {
                         {new Date(pub.createdAt).toLocaleDateString("en-RW", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     </div>
-
                     <Link href={`/publications/${pub.id}`}>
                       <h2 className="font-bold text-base text-slate-800 leading-snug mb-2 group-hover:text-[oklch(0.42_0.19_25)] transition-colors line-clamp-2">
                         {pub.title}
                       </h2>
                     </Link>
-
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 flex-1 mb-4">
-                      {pub.excerpt}
-                    </p>
-
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 flex-1 mb-4">{pub.excerpt}</p>
                     <div className="flex items-center justify-between pt-3 border-t border-border mt-auto">
                       {pub.author && (
                         <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
