@@ -7,7 +7,7 @@ export const RWANDA_DISTRICTS = [
   "Gasabo", "Kicukiro", "Nyarugenge",
   "Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo",
   "Bugesera", "Gatsibo", "Kayonza", "Kirehe", "Ngoma", "Nyagatare", "Rwamagana",
-  "Gisagara", "Huye", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango",
+  "Gisagara", "Huye", "Kamonyi", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango",
   "Karongi", "Ngororero", "Nyabihu", "Nyamasheke", "Rubavu", "Rusizi", "Rutsiro",
 ]
 
@@ -29,7 +29,7 @@ export const RWANDA_DISTRICTS_BY_PROVINCE = [
   },
   {
     groupLabel: "SOUTHERN PROVINCE",
-    items: ["Gisagara", "Huye", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango"],
+    items: ["Gisagara", "Huye", "Kamonyi", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango"],
   },
   {
     groupLabel: "WESTERN PROVINCE",
