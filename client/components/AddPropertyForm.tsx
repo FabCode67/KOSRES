@@ -8,6 +8,7 @@ import {
   Home, Briefcase, Leaf, Factory, Hash, CloudUpload,
 } from "lucide-react"
 import { createProperty, uploadImagesToCloudinary, updateProperty } from "@/lib/api"
+import { RWANDA_DISTRICTS } from "@/lib/rwanda"
 import { formatPrice } from "@/lib/utils"
 
 type FormState = {
@@ -28,7 +29,6 @@ type FormState = {
   featured: boolean
 }
 
-// Separate state for image files (File objects) and their previews
 type ImageItem = { file: File; preview: string; uploading: boolean; cloudUrl?: string; error?: string }
 
 const EMPTY: FormState = {
@@ -37,8 +37,6 @@ const EMPTY: FormState = {
   price: "", priceUnit: "RWF", priceFrequency: "", offerType: "sale",
   bedrooms: "", bathrooms: "", area: "", featured: false,
 }
-
-const DISTRICTS = ["Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Bugesera"]
 
 const PROPERTY_TYPES: Record<FormState["category"], string[]> = {
   residential:  ["Apartment","Villa","Single Family Home","Townhouse","Duplex","Plot","G+1"],
@@ -148,13 +146,10 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
   }
   const goBack = () => { setErrors([]); setStep(s => Math.max(s - 1, 1)) }
 
-  // ── Add files → generate local preview immediately ──
   const handleFiles = (files: FileList | null) => {
     if (!files) return
     const newItems: ImageItem[] = Array.from(files).map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      uploading: false,
+      file, preview: URL.createObjectURL(file), uploading: false,
     }))
     setImages(prev => [...prev, ...newItems].slice(0, 10))
   }
@@ -166,73 +161,43 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
     })
   }
 
-  // ── Submit: create property → upload images to Cloudinary → patch property ──
   const handleSubmit = async () => {
-    setSaving(true)
-    setErrors([])
-
+    setSaving(true); setErrors([])
     try {
-      // Step 1: Create the property record
       setSaveStatus("Creating listing…")
       const property = await createProperty({
-        title:          form.title,
-        description:    form.description,
-        propertyType:   form.propertyType,
-        category:       form.category,
-        upi:            form.upi || undefined,
-        district:       form.district,
-        sector:         form.sector,
-        price:          Number(form.price),
-        priceUnit:      form.priceUnit,
+        title: form.title, description: form.description,
+        propertyType: form.propertyType, category: form.category,
+        upi: form.upi || undefined, district: form.district, sector: form.sector,
+        price: Number(form.price), priceUnit: form.priceUnit,
         priceFrequency: form.priceFrequency || undefined,
-        offerType:      form.offerType,
-        bedrooms:       form.bedrooms ? Number(form.bedrooms) : undefined,
-        bathrooms:      form.bathrooms ? Number(form.bathrooms) : undefined,
-        area:           form.area ? Number(form.area) : undefined,
-        featured:       form.featured,
-        images:         [],
+        offerType: form.offerType,
+        bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
+        bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
+        area: form.area ? Number(form.area) : undefined,
+        featured: form.featured, images: [],
       }, token)
 
-      // Step 2: Upload images to Cloudinary if any
       if (images.length > 0) {
-        setSaveStatus(`Uploading ${images.length} image${images.length !== 1 ? "s" : ""} to Cloudinary…`)
-
-        // Mark all as uploading
+        setSaveStatus(`Uploading ${images.length} image${images.length !== 1 ? "s" : ""}…`)
         setImages(prev => prev.map(img => ({ ...img, uploading: true })))
-
         const files = images.map(img => img.file)
         const cloudUrls = await uploadImagesToCloudinary(files, token)
-
-        // Update preview with real cloud URLs
-        setImages(prev => prev.map((img, i) => ({
-          ...img,
-          uploading: false,
-          cloudUrl: cloudUrls[i],
-        })))
-
-        // Step 3: Patch the property with the Cloudinary URLs
+        setImages(prev => prev.map((img, i) => ({ ...img, uploading: false, cloudUrl: cloudUrls[i] })))
         setSaveStatus("Saving image URLs…")
         await updateProperty(property.id, { images: cloudUrls }, token)
       }
 
       setDone(true)
       setTimeout(() => {
-        setDone(false)
-        setForm(EMPTY)
-        setImages([])
-        setStep(1)
-        setSaveStatus("")
-        onSuccess()
+        setDone(false); setForm(EMPTY); setImages([]); setStep(1); setSaveStatus(""); onSuccess()
       }, 2000)
-
     } catch (err: any) {
       setErrors([err.message || "Failed to save property"])
     }
-
     setSaving(false)
   }
 
-  // ── Success ──
   if (done) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -250,7 +215,6 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
 
   return (
     <div className="flex gap-8 items-start">
-      {/* ── Form ── */}
       <div className="flex-1 min-w-0 max-w-2xl">
         {/* Progress */}
         <div className="mb-6">
@@ -259,9 +223,9 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
           <div className="flex items-center gap-1 overflow-x-auto pb-1">
             {STEPS.map(s => {
-              const Icon      = s.icon
-              const isActive  = step === s.id
-              const isDone    = step > s.id
+              const Icon = s.icon
+              const isActive = step === s.id
+              const isDone = step > s.id
               return (
                 <button key={s.id} type="button"
                   onClick={() => { if (s.id < step) { setErrors([]); setStep(s.id) } }}
@@ -278,7 +242,6 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         </div>
 
-        {/* Errors */}
         {errors.length > 0 && (
           <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-5 text-sm">
             <AlertCircle size={15} className="mt-0.5 flex-none" />
@@ -286,7 +249,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* ── Step 1: Details ── */}
+        {/* Step 1: Details */}
         {step === 1 && (
           <div className="space-y-5">
             <div>
@@ -331,19 +294,29 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* ── Step 2: Location ── */}
+        {/* Step 2: Location — now uses all 30 districts as a scrollable grid */}
         {step === 2 && (
           <div className="space-y-5">
             <div>
               <FieldLabel required>District</FieldLabel>
-              <div className="grid grid-cols-3 gap-2">
-                {DISTRICTS.map(d => (
-                  <button key={d} type="button" onClick={() => set("district", d)}
-                    className={`py-2.5 px-3 rounded-xl text-sm font-medium border transition-all ${form.district === d ? "bg-[oklch(0.42_0.19_25)] text-white border-[oklch(0.42_0.19_25)]" : "border-slate-200 text-slate-600 hover:border-slate-400 bg-white"}`}>
-                    {d}
-                  </button>
-                ))}
+              {/* Scrollable pill grid — all 30 districts */}
+              <div className="max-h-56 overflow-y-auto pr-1">
+                <div className="grid grid-cols-3 gap-2">
+                  {RWANDA_DISTRICTS.map(d => (
+                    <button key={d} type="button" onClick={() => set("district", d)}
+                      className={`py-2 px-2 rounded-xl text-xs font-medium border transition-all text-center ${
+                        form.district === d
+                          ? "bg-[oklch(0.42_0.19_25)] text-white border-[oklch(0.42_0.19_25)]"
+                          : "border-slate-200 text-slate-600 hover:border-slate-400 bg-white"
+                      }`}>
+                      {d}
+                    </button>
+                  ))}
+                </div>
               </div>
+              {form.district && (
+                <p className="text-xs text-slate-500 mt-2 font-medium">Selected: <strong>{form.district}</strong></p>
+              )}
             </div>
             <div>
               <FieldLabel required>Sector / Neighbourhood</FieldLabel>
@@ -355,7 +328,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* ── Step 3: Pricing ── */}
+        {/* Step 3: Pricing */}
         {step === 3 && (
           <div className="space-y-5">
             <div>
@@ -400,7 +373,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* ── Step 4: Specs ── */}
+        {/* Step 4: Specs */}
         {step === 4 && (
           <div className="space-y-6">
             {form.category === "residential" && (
@@ -443,7 +416,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* ── Step 5: Images → Cloudinary ── */}
+        {/* Step 5: Images */}
         {step === 5 && (
           <div className="space-y-5">
             <div
@@ -457,8 +430,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-700">Drop images here or click to upload</p>
-                <p className="text-xs text-slate-400 mt-1">Images will be uploaded to <span className="font-semibold text-slate-600">Cloudinary</span> on publish</p>
-                <p className="text-xs text-slate-400">JPG, PNG, WebP — max 10MB each, up to 10 images</p>
+                <p className="text-xs text-slate-400 mt-1">JPG, PNG, WebP — max 10MB each, up to 10 images</p>
               </div>
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden"
                 onChange={e => handleFiles(e.target.files)} />
@@ -466,40 +438,19 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
 
             {images.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-slate-500 mb-3 flex items-center gap-2">
-                  <span>{images.length} image{images.length !== 1 ? "s" : ""} selected</span>
-                  {images.some(i => i.cloudUrl) && (
-                    <span className="flex items-center gap-1 text-green-600"><Check size={11} />{images.filter(i => i.cloudUrl).length} uploaded</span>
-                  )}
+                <p className="text-xs font-semibold text-slate-500 mb-3">
+                  {images.length} image{images.length !== 1 ? "s" : ""} selected
                 </p>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {images.map((img, idx) => (
-                    <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square bg-slate-100 border-2 border-transparent">
+                    <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square bg-slate-100">
                       <img src={img.cloudUrl || img.preview} alt="" className="w-full h-full object-cover" />
-
-                      {/* Upload status overlay */}
                       {img.uploading && (
-                        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                           <Loader2 size={18} className="animate-spin text-white" />
-                          <span className="text-white text-[10px]">Uploading…</span>
                         </div>
                       )}
-                      {img.cloudUrl && !img.uploading && (
-                        <div className="absolute inset-x-0 bottom-0 bg-green-500/80 flex items-center justify-center py-1 gap-1">
-                          <Check size={11} className="text-white" strokeWidth={3} />
-                          <span className="text-white text-[10px] font-semibold">Cloudinary</span>
-                        </div>
-                      )}
-                      {img.error && (
-                        <div className="absolute inset-0 bg-red-500/60 flex items-center justify-center p-2">
-                          <span className="text-white text-[10px] text-center">{img.error}</span>
-                        </div>
-                      )}
-
-                      {idx === 0 && !img.uploading && (
-                        <span className="absolute top-1.5 left-1.5 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">Cover</span>
-                      )}
-
+                      {idx === 0 && <span className="absolute top-1.5 left-1.5 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">Cover</span>}
                       <button type="button" onClick={() => removeImage(idx)}
                         className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
                         <X size={12} />
@@ -507,15 +458,12 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-400 mt-2">
-                  Images will be auto-optimised and resized on Cloudinary when you publish.
-                </p>
               </div>
             )}
           </div>
         )}
 
-        {/* ── Navigation ── */}
+        {/* Navigation */}
         <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100">
           {step > 1 && (
             <button type="button" onClick={goBack}
@@ -538,7 +486,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
         </div>
       </div>
 
-      {/* ── Live Preview ── */}
+      {/* Live Preview */}
       <div className="w-72 xl:w-80 flex-none hidden lg:block">
         <div className="sticky top-6">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Live Preview</p>

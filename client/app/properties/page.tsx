@@ -5,16 +5,11 @@ import { Search, Loader2 } from "lucide-react"
 import Navbar from "@/components/Navbar"
 import PropertyCard from "@/components/PropertyCard"
 import { getProperties } from "@/lib/api"
+import { RWANDA_DISTRICTS } from "@/lib/rwanda"
 import type { ApiProperty } from "@/lib/api"
 
-const DISTRICTS = [
-  "All",
-  "Gasabo","Kicukiro","Nyarugenge",
-  "Burera","Gakenke","Gicumbi","Musanze","Rulindo",
-  "Bugesera","Gatsibo","Kayonza","Kirehe","Ngoma","Nyagatare","Rwamagana",
-  "Gisagara","Huye","Muhanga","Nyamagabe","Nyanza","Nyaruguru","Ruhango",
-  "Karongi","Ngororero","Nyabihu","Nyamasheke","Rubavu","Rusizi","Rutsiro",
-]
+const DISTRICTS = ["All", ...RWANDA_DISTRICTS]
+
 const OFFER_TYPES = [
   { value: "all",        label: "All"        },
   { value: "sale",       label: "For Sale"   },
@@ -62,7 +57,6 @@ export default function PropertiesPage() {
   return (
     <>
       <Navbar />
-      {/* pt-36 = 144px — clears the 3-row fixed navbar (~132px) */}
       <div className="pt-36 min-h-screen max-w-7xl mx-auto px-4 sm:px-6 pb-20">
 
         <div className="mb-8">

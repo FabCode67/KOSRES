@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { X, Check, Loader2, AlertCircle } from "lucide-react"
 import { updateProperty } from "@/lib/api"
+import { RWANDA_DISTRICTS } from "@/lib/rwanda"
 import type { ApiProperty } from "@/lib/api"
 
 interface EditPropertyModalProps {
@@ -12,8 +13,13 @@ interface EditPropertyModalProps {
   onSaved: (updated: ApiProperty) => void
 }
 
-const DISTRICTS = ["Kicukiro","Nyarugenge","Gasabo","Musanze","Rubavu","Muhanga","Kayonza","Rusizi","Bugesera"]
-const PROPERTY_TYPES = ["Flats","Single Family Home","Town House","Duplex","Villa","G+1","Plot","Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station","Factory","Distribution Center","Commercial Land","Farmland","Crop Plantation","Green House","Industrial Land","Warehouse","Apartment"]
+const PROPERTY_TYPES = [
+  "Flats","Single Family Home","Town House","Duplex","Villa","G+1","Plot",
+  "Office","Shop","Showroom","Hotel","Guest House","Bar & Restaurant","Fuel Station",
+  "Factory","Distribution Center","Commercial Land",
+  "Farmland","Crop Plantation","Green House",
+  "Industrial Land","Warehouse","Apartment",
+]
 const STATUS_OPTIONS = ["active","sold","rented","inactive"]
 
 export default function EditPropertyModal({ property, token, onClose, onSaved }: EditPropertyModalProps) {
@@ -39,7 +45,6 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState("")
 
-  // Lock body scroll
   useEffect(() => {
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
@@ -53,7 +58,6 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
   const handleSave = async () => {
     if (!form.title.trim()) { setError("Title is required"); return }
     if (!Number(form.price) || Number(form.price) <= 0) { setError("Valid price is required"); return }
-
     setSaving(true)
     try {
       const updated = await updateProperty(property.id, {
@@ -86,11 +90,9 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
           <div>
@@ -102,7 +104,7 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
           </button>
         </div>
 
-        {/* Scrollable body */}
+        {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-6 space-y-5">
           {error && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">
@@ -110,13 +112,11 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
             </div>
           )}
 
-          {/* Title */}
           <div>
             <label className={lbl}>Title <span className="text-red-400">*</span></label>
             <input value={form.title} onChange={e => set("title", e.target.value)} className={inp} placeholder="Property title" />
           </div>
 
-          {/* Description */}
           <div>
             <label className={lbl}>Description</label>
             <textarea rows={3} value={form.description} onChange={e => set("description", e.target.value)} className={`${inp} resize-none`} />
@@ -130,13 +130,8 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">
                   {form.priceUnit === "USD" ? "$" : "RWF"}
                 </span>
-                <input
-                  type="number" min="0" step="any"
-                  value={form.price}
-                  onChange={e => set("price", e.target.value)}
-                  className={`${inp} pl-11 font-mono`}
-                  placeholder="0"
-                />
+                <input type="number" min="0" step="any" value={form.price}
+                  onChange={e => set("price", e.target.value)} className={`${inp} pl-11 font-mono`} placeholder="0" />
               </div>
               <select value={form.priceUnit} onChange={e => set("priceUnit", e.target.value)} className={`${inp} w-24`}>
                 <option value="RWF">RWF</option>
@@ -148,17 +143,9 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
                 <option value="year">Per Year</option>
               </select>
             </div>
-            {form.price && (
-              <p className="text-xs text-slate-500 mt-1.5 font-medium">
-                Preview: {form.priceUnit === "USD"
-                  ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(form.price))
-                  : new Intl.NumberFormat("en-RW", { maximumFractionDigits: 0 }).format(Number(form.price)) + " RWF"
-                }{form.priceFrequency ? `/${form.priceFrequency}` : ""}
-              </p>
-            )}
           </div>
 
-          {/* Offer + Category row */}
+          {/* Offer + Category */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={lbl}>Offer Type</label>
@@ -179,7 +166,6 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
             </div>
           </div>
 
-          {/* Property type */}
           <div>
             <label className={lbl}>Property Type</label>
             <select value={form.propertyType} onChange={e => set("propertyType", e.target.value)} className={inp}>
@@ -187,12 +173,12 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
             </select>
           </div>
 
-          {/* Location */}
+          {/* Location — all 30 districts */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={lbl}>District</label>
               <select value={form.district} onChange={e => set("district", e.target.value)} className={inp}>
-                {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                {RWANDA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
@@ -217,7 +203,6 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
             </div>
           </div>
 
-          {/* UPI */}
           <div>
             <label className={lbl}>UPI</label>
             <input value={form.upi} onChange={e => set("upi", e.target.value)} className={inp} placeholder="e.g. 1/05/01/01/0001" />
@@ -232,10 +217,8 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
               </select>
             </div>
             <div className="flex flex-col justify-end">
-              <label
-                onClick={() => set("featured", !form.featured)}
-                className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${form.featured ? "border-amber-400 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}
-              >
+              <label onClick={() => set("featured", !form.featured)}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${form.featured ? "border-amber-400 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
                 <div className={`w-9 h-5 rounded-full relative transition-colors ${form.featured ? "bg-amber-400" : "bg-slate-200"}`}>
                   <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.featured ? "left-4" : "left-0.5"}`} />
                 </div>
@@ -247,9 +230,7 @@ export default function EditPropertyModal({ property, token, onClose, onSaved }:
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-            Cancel
-          </button>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[oklch(0.42_0.19_25)] text-white font-semibold text-sm hover:bg-[oklch(0.36_0.18_25)] disabled:opacity-60 transition-colors">
             {saving ? <><Loader2 size={14} className="animate-spin" />Saving…</> : <><Check size={14} />Save Changes</>}
