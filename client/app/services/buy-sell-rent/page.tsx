@@ -1,8 +1,6 @@
 import ServiceLayout from "@/components/ServiceLayout"
-import ServiceRequestForm from "@/components/ServiceRequestForm"
-import Link from "next/link"
-import { Home, Key, Clock, ChevronRight } from "lucide-react"
-import { RWANDA_DISTRICTS_BY_PROVINCE, PROPERTY_TYPE_GROUPS } from "@/lib/rwanda"
+import BuySellRentListings from "@/components/BuySellRentListings"
+import { Home, Key, Clock } from "lucide-react"
 
 const ACCENT = "#7B1113"
 
@@ -21,10 +19,12 @@ export default function BuySellRentPage() {
       breadcrumb="Buy / Sell & Rent"
       description="KOSRES LTD provides professional property buying, selling, and rental services designed to make real estate transactions simple, efficient, and rewarding. With extensive market knowledge, professional guidance, and commitment to client satisfaction, we serve as a trusted partner for residential, commercial, and investment properties across Rwanda."
     >
+      {/* ── Highlights ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
         {highlights.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: ACCENT + "15" }}>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+              style={{ backgroundColor: ACCENT + "15" }}>
               <Icon size={18} style={{ color: ACCENT }} />
             </div>
             <h3 className="font-bold text-sm mb-1 text-slate-800">{title}</h3>
@@ -33,36 +33,8 @@ export default function BuySellRentPage() {
         ))}
       </div>
 
-      <div className="mb-14 rounded-2xl p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-4" style={{ backgroundColor: ACCENT }}>
-        <div>
-          <h2 className="text-xl font-black mb-1">Browse All Listings</h2>
-          <p className="text-white/70 text-sm">View our full portfolio — for sale, for rent and short stay.</p>
-        </div>
-        <Link href="/properties"
-          className="flex-none inline-flex items-center gap-2 bg-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-white/90 transition-colors whitespace-nowrap"
-          style={{ color: ACCENT }}>
-          View Properties <ChevronRight size={15} />
-        </Link>
-      </div>
-
-      <h2 className="text-xl font-black mb-6 text-slate-800">Submit a Property Request</h2>
-      <ServiceRequestForm
-        accentColor={ACCENT}
-        serviceTitle="Buy / Sell & Rent"
-        waMessagePrefix="Hello KOSRES, I have a property enquiry."
-        fields={[
-          { name: "name",           label: "Your Name",          type: "text",           required: true, placeholder: "Full name" },
-          { name: "email",          label: "Email Address",      type: "email",          required: true, placeholder: "your@email.com" },
-          { name: "contact",        label: "Contact",            type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
-          { name: "offerType",      label: "I want to",          type: "select",         required: true,
-            options: ["Buy a Property","Sell my Property","Rent a Property","List for Rent","Short-term Stay"] },
-          { name: "propertyType",   label: "Property Type",      type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
-          { name: "district",       label: "Preferred District", type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
-          { name: "budget",         label: "Budget / Price",     type: "text",           placeholder: "e.g. 80,000,000 RWF or 500 USD/month" },
-          { name: "request",        label: "Tell us more about what you're looking for", type: "textarea", required: true,
-            placeholder: "Describe the property you need or are offering — size, number of rooms, key features, timeline, and any other important details…", colSpan: "full" },
-        ]}
-      />
+      {/* ── Live listings + integrated request form ── */}
+      <BuySellRentListings accent={ACCENT} />
     </ServiceLayout>
   )
 }

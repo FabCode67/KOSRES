@@ -31,6 +31,46 @@ export type ApiPublication = {
   status: "draft"|"published"; slug?: string
   createdAt: string; updatedAt: string
 }
+export type ApiPartner = {
+  id: string; name: string; logo?: string; website?: string
+  description?: string; category?: string
+  active: boolean; order: number
+  createdAt: string; updatedAt: string
+}
+export type ApiCar = {
+  id: string
+  title: string
+  description: string
+  brand: string
+  model: string
+  year?: number
+  fuelType: "petrol"|"diesel"|"hybrid"|"electric"
+  transmission?: string
+  seats?: number
+  mileage?: number
+  color?: string
+  plateNumber?: string
+  serviceType: "rent"|"sale"|"taxi"
+  price: number
+  priceUnit: string
+  priceFrequency?: string
+  district?: string
+  location?: string
+  images: string[]
+  featured: boolean
+  status: "available"|"rented"|"sold"|"inactive"
+  createdAt: string
+  updatedAt: string
+}
+export type PaginatedCars = {
+  data: ApiCar[]
+  meta: { total: number; page: number; limit: number; pages: number }
+}
+export type CarQuery = {
+  search?: string; serviceType?: string; brand?: string
+  district?: string; status?: string; featured?: boolean
+  page?: number; limit?: number
+}
 export type PaginatedProperties = {
   data: ApiProperty[]
   meta: { total: number; page: number; limit: number; pages: number }
@@ -82,7 +122,6 @@ export async function login(email: string, password: string) {
   return res.json() as Promise<{ access_token: string; user: { id: string; name: string; email: string; role: string } }>
 }
 
-// ── Cache revalidation ────────────────────────────────────────────────
 async function revalidateSite() {
   try {
     const base = typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
@@ -203,5 +242,86 @@ export async function uploadPublicationDocument(id: string, file: File): Promise
   const fd = new FormData(); fd.append("file", file)
   const res = await fetch(`${API_URL}/publications/${id}/document`, { method: "POST", body: fd })
   if (!res.ok) throw new Error("Failed to upload document")
+  return res.json()
+}
+
+// ── Partners ──────────────────────────────────────────────────────────
+export async function getPartners(all = false): Promise<ApiPartner[]> {
+  const res = await fetch(`${API_URL}/partners${all ? "?all=true" : ""}`, { cache: "no-store" })
+  if (!res.ok) throw new Error("Failed to fetch partners")
+  return res.json()
+}
+export async function createPartner(data: Partial<ApiPartner>): Promise<ApiPartner> {
+  const res = await fetch(`${API_URL}/partners`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.message || "Failed to create") }
+  return res.json()
+}
+export async function updatePartner(id: string, data: Partial<ApiPartner>): Promise<ApiPartner> {
+  const res = await fetch(`${API_URL}/partners/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.message || "Failed to update") }
+  return res.json()
+}
+export async function deletePartner(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/partners/${id}`, { method: "DELETE" })
+  if (!res.ok) throw new Error("Failed to delete partner")
+}
+export async function uploadPartnerLogo(id: string, file: File): Promise<ApiPartner> {
+  const fd = new FormData(); fd.append("file", file)
+  const res = await fetch(`${API_URL}/partners/${id}/logo`, { method: "POST", body: fd })
+  if (!res.ok) throw new Error("Failed to upload logo")
+  return res.json()
+}
+
+// ── Cars ──────────────────────────────────────────────────────────────
+export async function getCars(q: CarQuery = {}): Promise<PaginatedCars> {
+  const params = new URLSearchParams()
+  Object.entries(q).forEach(([k,v]) => v !== undefined && params.set(k, String(v)))
+  const res = await fetch(`${API_URL}/cars?${params}`, { cache: "no-store" })
+  if (!res.ok) throw new Error("Failed to fetch cars")
+  return res.json()
+}
+export async function getFeaturedCars(): Promise<ApiCar[]> {
+  const res = await fetch(`${API_URL}/cars/featured`, { next: { revalidate: 60 } })
+  if (!res.ok) throw new Error("Failed to fetch featured cars")
+  return res.json()
+}
+export async function getCar(id: string): Promise<ApiCar> {
+  const res = await fetch(`${API_URL}/cars/${id}`, { next: { revalidate: 30 } })
+  if (!res.ok) throw new Error("Car not found")
+  return res.json()
+}
+export async function createCar(data: Partial<ApiCar>): Promise<ApiCar> {
+  const res = await fetch(`${API_URL}/cars`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.message || "Failed to create car") }
+  return res.json()
+}
+export async function updateCar(id: string, data: Partial<ApiCar>): Promise<ApiCar> {
+  const res = await fetch(`${API_URL}/cars/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.message || "Failed to update car") }
+  return res.json()
+}
+export async function deleteCar(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/cars/${id}`, { method: "DELETE" })
+  if (!res.ok) throw new Error("Failed to delete car")
+}
+export async function uploadCarImages(id: string, files: File[]): Promise<ApiCar> {
+  const fd = new FormData()
+  files.forEach(f => fd.append("files", f))
+  const res = await fetch(`${API_URL}/cars/${id}/images`, { method: "POST", body: fd })
+  if (!res.ok) throw new Error("Failed to upload car images")
+  return res.json()
+}
+export async function deleteCarImage(id: string, imageUrl: string): Promise<ApiCar> {
+  const res = await fetch(`${API_URL}/cars/${id}/images`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageUrl }),
+  })
+  if (!res.ok) throw new Error("Failed to remove car image")
+  return res.json()
+}
+export async function getCarStats() {
+  const res = await fetch(`${API_URL}/cars/stats`, { cache: "no-store" })
+  if (!res.ok) throw new Error("Failed to fetch car stats")
   return res.json()
 }
