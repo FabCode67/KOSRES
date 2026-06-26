@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "react"
 import {
   Check, Loader2, ChevronRight, ChevronLeft,
   Building2, MapPin, DollarSign, Ruler,
-  Upload, X, Star, AlertCircle, ImageIcon,
+  X, Star, AlertCircle, ImageIcon,
   Home, Briefcase, Leaf, Factory, Hash, CloudUpload,
 } from "lucide-react"
 import { createProperty, uploadImagesToCloudinary, updateProperty } from "@/lib/api"
@@ -74,8 +74,8 @@ function validateStep(step: number, form: FormState): string[] {
     if (!form.propertyType)       errs.push("Property type is required")
   }
   if (step === 2) {
-    if (!form.district)           errs.push("District is required")
-    if (!form.sector.trim())      errs.push("Sector is required")
+    if (!form.district)      errs.push("District is required")
+    if (!form.sector.trim()) errs.push("Sector is required")
   }
   if (step === 3) {
     if (!form.price || Number(form.price) <= 0) errs.push("Valid price is required")
@@ -124,14 +124,16 @@ function PreviewCard({ form, images }: { form: FormState; images: ImageItem[] })
 }
 
 export default function AddPropertyForm({ token, onSuccess }: { token: string; onSuccess: () => void }) {
-  const [form, setForm]     = useState<FormState>(EMPTY)
-  const [images, setImages] = useState<ImageItem[]>([])
-  const [step, setStep]     = useState(1)
-  const [errors, setErrors] = useState<string[]>([])
-  const [saving, setSaving] = useState(false)
+  const [form, setForm]         = useState<FormState>(EMPTY)
+  const [images, setImages]     = useState<ImageItem[]>([])
+  const [step, setStep]         = useState(1)
+  const [errors, setErrors]     = useState<string[]>([])
+  const [saving, setSaving]     = useState(false)
   const [saveStatus, setSaveStatus] = useState("")
-  const [done, setDone]     = useState(false)
-  const fileInputRef        = useRef<HTMLInputElement>(null)
+  const [done, setDone]         = useState(false)
+  // Separate display value for price — raw digits while typing, formatted on blur
+  const [priceDisplay, setPriceDisplay] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const set = useCallback(<K extends keyof FormState>(key: K, val: FormState[K]) => {
     setForm(prev => ({ ...prev, [key]: val }))
@@ -172,9 +174,9 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
         price: Number(form.price), priceUnit: form.priceUnit,
         priceFrequency: form.priceFrequency || undefined,
         offerType: form.offerType,
-        bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
+        bedrooms:  form.bedrooms  ? Number(form.bedrooms)  : undefined,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
-        area: form.area ? Number(form.area) : undefined,
+        area:      form.area      ? Number(form.area)      : undefined,
         featured: form.featured, images: [],
       }, token)
 
@@ -190,7 +192,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
 
       setDone(true)
       setTimeout(() => {
-        setDone(false); setForm(EMPTY); setImages([]); setStep(1); setSaveStatus(""); onSuccess()
+        setDone(false); setForm(EMPTY); setImages([]); setStep(1); setSaveStatus(""); setPriceDisplay(""); onSuccess()
       }, 2000)
     } catch (err: any) {
       setErrors([err.message || "Failed to save property"])
@@ -205,7 +207,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           <Check size={32} className="text-green-600" strokeWidth={2.5} />
         </div>
         <h3 className="text-xl font-bold">Property Published!</h3>
-        <p className="text-sm text-slate-500">Images uploaded to Cloudinary. Redirecting…</p>
+        <p className="text-sm text-slate-500">Redirecting…</p>
       </div>
     )
   }
@@ -216,7 +218,8 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
   return (
     <div className="flex gap-8 items-start">
       <div className="flex-1 min-w-0 max-w-2xl">
-        {/* Progress */}
+
+        {/* ── Progress ── */}
         <div className="mb-6">
           <div className="relative h-1 bg-slate-100 rounded-full mb-5">
             <div className="absolute left-0 top-0 h-full bg-[oklch(0.42_0.19_25)] rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
@@ -225,7 +228,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
             {STEPS.map(s => {
               const Icon = s.icon
               const isActive = step === s.id
-              const isDone = step > s.id
+              const isDone   = step > s.id
               return (
                 <button key={s.id} type="button"
                   onClick={() => { if (s.id < step) { setErrors([]); setStep(s.id) } }}
@@ -249,26 +252,34 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* Step 1: Details */}
+        {/* ── Step 1: Details ── */}
         {step === 1 && (
           <div className="space-y-5">
             <div>
               <FieldLabel required>Listing Title</FieldLabel>
-              <input value={form.title} onChange={e => set("title", e.target.value)} placeholder="e.g. Elegant 3-Bedroom Apartment in Kimihurura" className={inputCls} />
+              <input value={form.title} onChange={e => set("title", e.target.value)}
+                placeholder="e.g. Elegant 3-Bedroom Apartment in Kimihurura" className={inputCls} />
               <p className="text-xs text-slate-400 mt-1">{form.title.length}/500 characters</p>
             </div>
             <div>
               <FieldLabel required>Description</FieldLabel>
-              <textarea rows={5} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Describe the property…" className={`${inputCls} resize-none`} />
+              <textarea rows={5} value={form.description} onChange={e => set("description", e.target.value)}
+                placeholder="Describe the property…" className={`${inputCls} resize-none`} />
             </div>
             <div>
               <FieldLabel required>Category</FieldLabel>
               <div className="grid grid-cols-2 gap-2">
                 {CATEGORY_META.map(({ value, label, icon: Icon, desc }) => (
-                  <button key={value} type="button" onClick={() => { set("category", value); set("propertyType", "") }}
+                  <button key={value} type="button"
+                    onClick={() => { set("category", value); set("propertyType", "") }}
                     className={`flex items-start gap-3 p-3.5 rounded-xl border-2 text-left transition-all ${form.category === value ? "border-[oklch(0.42_0.19_25)] bg-red-50/30" : "border-slate-200 hover:border-slate-300 bg-white"}`}>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-none ${form.category === value ? "bg-[oklch(0.42_0.19_25)] text-white" : "bg-slate-100 text-slate-500"}`}><Icon size={15} /></div>
-                    <div><p className="text-sm font-semibold leading-tight">{label}</p><p className="text-xs text-slate-400 mt-0.5">{desc}</p></div>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-none ${form.category === value ? "bg-[oklch(0.42_0.19_25)] text-white" : "bg-slate-100 text-slate-500"}`}>
+                      <Icon size={15} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold leading-tight">{label}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -278,7 +289,11 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
               <div className="flex flex-wrap gap-2">
                 {PROPERTY_TYPES[form.category].map(pt => (
                   <button key={pt} type="button" onClick={() => set("propertyType", pt)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${form.propertyType === pt ? "bg-[oklch(0.42_0.19_25)] text-white border-[oklch(0.42_0.19_25)]" : "border-slate-200 text-slate-600 hover:border-slate-400 bg-white"}`}>
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                      form.propertyType === pt
+                        ? "bg-[oklch(0.42_0.19_25)] text-white border-[oklch(0.42_0.19_25)]"
+                        : "border-slate-200 text-slate-600 hover:border-slate-400 bg-white"
+                    }`}>
                     {pt}
                   </button>
                 ))}
@@ -288,18 +303,18 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
               <FieldLabel>UPI</FieldLabel>
               <div className="relative">
                 <Hash size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={form.upi} onChange={e => set("upi", e.target.value)} placeholder="e.g. 1/05/01/01/0001" className={`${inputCls} pl-9`} />
+                <input value={form.upi} onChange={e => set("upi", e.target.value)}
+                  placeholder="e.g. 1/05/01/01/0001" className={`${inputCls} pl-9`} />
               </div>
             </div>
           </div>
         )}
 
-        {/* Step 2: Location — now uses all 30 districts as a scrollable grid */}
+        {/* ── Step 2: Location ── */}
         {step === 2 && (
           <div className="space-y-5">
             <div>
               <FieldLabel required>District</FieldLabel>
-              {/* Scrollable pill grid — all 30 districts */}
               <div className="max-h-56 overflow-y-auto pr-1">
                 <div className="grid grid-cols-3 gap-2">
                   {RWANDA_DISTRICTS.map(d => (
@@ -322,48 +337,93 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
               <FieldLabel required>Sector / Neighbourhood</FieldLabel>
               <div className="relative">
                 <MapPin size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={form.sector} onChange={e => set("sector", e.target.value)} placeholder="e.g. Kimihurura, Nyamirambo…" className={`${inputCls} pl-9`} />
+                <input value={form.sector} onChange={e => set("sector", e.target.value)}
+                  placeholder="e.g. Kimihurura, Nyamirambo…" className={`${inputCls} pl-9`} />
               </div>
             </div>
           </div>
         )}
 
-        {/* Step 3: Pricing */}
+        {/* ── Step 3: Pricing ── */}
         {step === 3 && (
           <div className="space-y-5">
+            {/* Offer type */}
             <div>
               <FieldLabel required>Offer Type</FieldLabel>
               <div className="grid grid-cols-3 gap-3">
                 {OFFER_META.map(o => (
                   <button key={o.value} type="button" onClick={() => set("offerType", o.value)}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${form.offerType === o.value ? o.color + " border-current" : "border-slate-200 text-slate-500 bg-white"}`}>
+                    className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                      form.offerType === o.value ? o.color + " border-current" : "border-slate-200 text-slate-500 bg-white"
+                    }`}>
                     <span className={`w-2 h-2 rounded-full ${form.offerType === o.value ? o.dot : "bg-slate-300"}`} />
                     {o.label}
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* ── Price input — uncontrolled display, formatted on blur ── */}
             <div>
               <FieldLabel required>Price</FieldLabel>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">{form.priceUnit}</span>
-                  <input type="number" min="0" value={form.price} onChange={e => set("price", e.target.value)} placeholder="0" className={`${inputCls} pl-12 font-mono`} />
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none select-none">
+                    {form.priceUnit}
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={priceDisplay}
+                    placeholder="e.g. 50000000"
+                    className={`${inputCls} pl-14 font-mono tracking-wide`}
+                    onChange={e => {
+                      // Allow only digits while typing — no reformatting mid-type
+                      const raw = e.target.value.replace(/[^0-9]/g, "")
+                      setPriceDisplay(raw)
+                      set("price", raw)
+                    }}
+                    onBlur={() => {
+                      // Format with commas only when user leaves the field
+                      if (form.price) {
+                        setPriceDisplay(Number(form.price).toLocaleString())
+                      }
+                    }}
+                    onFocus={() => {
+                      // Strip commas when user focuses so they can edit raw digits
+                      setPriceDisplay(form.price)
+                    }}
+                  />
                 </div>
-                <select value={form.priceUnit} onChange={e => set("priceUnit", e.target.value as "RWF"|"USD")} className={`${inputCls} w-24`}>
+                <select
+                  value={form.priceUnit}
+                  onChange={e => set("priceUnit", e.target.value as "RWF" | "USD")}
+                  className={`${inputCls} w-24`}
+                >
                   <option value="RWF">RWF</option>
                   <option value="USD">USD</option>
                 </select>
               </div>
-              {form.price && <p className="text-xs text-slate-500 mt-1.5 font-medium">Preview: {formatPrice(Number(form.price), form.priceUnit, form.priceFrequency || null)}</p>}
+              {/* Live formatted preview below the field */}
+              {form.price && (
+                <p className="text-sm font-bold text-[oklch(0.42_0.19_25)] mt-2">
+                  = {formatPrice(Number(form.price), form.priceUnit, form.priceFrequency || null)}
+                </p>
+              )}
             </div>
+
+            {/* Billing frequency (rent / short stay only) */}
             {form.offerType !== "sale" && (
               <div>
                 <FieldLabel>Billing Frequency</FieldLabel>
                 <div className="flex gap-2">
                   {(["", "month", "year"] as const).map(f => (
                     <button key={f} type="button" onClick={() => set("priceFrequency", f)}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${form.priceFrequency === f ? "bg-slate-800 text-white border-slate-800" : "border-slate-200 text-slate-600 bg-white"}`}>
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                        form.priceFrequency === f
+                          ? "bg-slate-800 text-white border-slate-800"
+                          : "border-slate-200 text-slate-600 bg-white"
+                      }`}>
                       {f === "" ? "One-time" : f === "month" ? "Per Month" : "Per Year"}
                     </button>
                   ))}
@@ -373,7 +433,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* Step 4: Specs */}
+        {/* ── Step 4: Specs ── */}
         {step === 4 && (
           <div className="space-y-6">
             {form.category === "residential" && (
@@ -384,9 +444,17 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
                     <div key={field}>
                       <FieldLabel>{field === "bedrooms" ? "Bedrooms 🛏" : "Bathrooms 🚿"}</FieldLabel>
                       <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
-                        <button type="button" onClick={() => set(field, String(Math.max(0, n - 1)))} className="px-4 py-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors text-lg font-light border-r border-slate-200">−</button>
+                        <button type="button"
+                          onClick={() => set(field, String(Math.max(0, n - 1)))}
+                          className="px-4 py-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors text-lg font-light border-r border-slate-200">
+                          −
+                        </button>
                         <div className="flex-1 text-center text-sm font-semibold">{n === 0 ? "—" : n}</div>
-                        <button type="button" onClick={() => set(field, String(n + 1))} className="px-4 py-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors text-lg font-light border-l border-slate-200">+</button>
+                        <button type="button"
+                          onClick={() => set(field, String(n + 1))}
+                          className="px-4 py-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors text-lg font-light border-l border-slate-200">
+                          +
+                        </button>
                       </div>
                     </div>
                   )
@@ -396,12 +464,22 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
             <div>
               <FieldLabel>Total Area (m²)</FieldLabel>
               <div className="relative">
-                <Ruler size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input type="number" min="0" value={form.area} onChange={e => set("area", e.target.value)} placeholder="e.g. 120" className={`${inputCls} pl-9 font-mono`} />
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">m²</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.area}
+                  onChange={e => set("area", e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="e.g. 120"
+                  className={`${inputCls} pl-10 font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                />
               </div>
             </div>
-            <div onClick={() => set("featured", !form.featured)}
-              className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${form.featured ? "border-amber-400 bg-amber-50" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+            <div
+              onClick={() => set("featured", !form.featured)}
+              className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                form.featured ? "border-amber-400 bg-amber-50" : "border-slate-200 bg-white hover:border-slate-300"
+              }`}>
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${form.featured ? "bg-amber-400" : "bg-slate-100"}`}>
                 <Star size={18} className={form.featured ? "text-white fill-white" : "text-slate-400"} />
               </div>
@@ -416,7 +494,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* Step 5: Images */}
+        {/* ── Step 5: Images ── */}
         {step === 5 && (
           <div className="space-y-5">
             <div
@@ -432,8 +510,14 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
                 <p className="text-sm font-semibold text-slate-700">Drop images here or click to upload</p>
                 <p className="text-xs text-slate-400 mt-1">JPG, PNG, WebP — max 10MB each, up to 10 images</p>
               </div>
-              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden"
-                onChange={e => handleFiles(e.target.files)} />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="hidden"
+                onChange={e => handleFiles(e.target.files)}
+              />
             </div>
 
             {images.length > 0 && (
@@ -450,7 +534,9 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
                           <Loader2 size={18} className="animate-spin text-white" />
                         </div>
                       )}
-                      {idx === 0 && <span className="absolute top-1.5 left-1.5 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">Cover</span>}
+                      {idx === 0 && (
+                        <span className="absolute top-1.5 left-1.5 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">Cover</span>
+                      )}
                       <button type="button" onClick={() => removeImage(idx)}
                         className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
                         <X size={12} />
@@ -463,7 +549,7 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           </div>
         )}
 
-        {/* Navigation */}
+        {/* ── Navigation ── */}
         <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100">
           {step > 1 && (
             <button type="button" onClick={goBack}
@@ -480,13 +566,16 @@ export default function AddPropertyForm({ token, onSuccess }: { token: string; o
           ) : (
             <button type="button" onClick={handleSubmit} disabled={saving}
               className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-60 transition-colors shadow-sm">
-              {saving ? <><Loader2 size={15} className="animate-spin" />{saveStatus || "Publishing…"}</> : <><Check size={15} strokeWidth={2.5} />Publish Listing</>}
+              {saving
+                ? <><Loader2 size={15} className="animate-spin" />{saveStatus || "Publishing…"}</>
+                : <><Check size={15} strokeWidth={2.5} />Publish Listing</>
+              }
             </button>
           )}
         </div>
       </div>
 
-      {/* Live Preview */}
+      {/* ── Live Preview (desktop only) ── */}
       <div className="w-72 xl:w-80 flex-none hidden lg:block">
         <div className="sticky top-6">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Live Preview</p>

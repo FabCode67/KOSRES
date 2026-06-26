@@ -1,7 +1,25 @@
+import type { Metadata } from "next"
 import ServiceLayout from "@/components/ServiceLayout"
 import ServiceRequestForm from "@/components/ServiceRequestForm"
 import { Scale, FileText, Banknote, ShieldCheck } from "lucide-react"
 import { RWANDA_DISTRICTS_BY_PROVINCE, PROPERTY_TYPE_GROUPS } from "@/lib/rwanda"
+
+export const metadata: Metadata = {
+  title: "Property & Asset Valuation Services in Rwanda",
+  description:
+    "Professional independent property and asset valuations in Rwanda by IPPV members. Accepted by banks, embassies, courts and government. Loans, insurance, tax, visa applications and more.",
+  keywords: [
+    "property valuation Rwanda", "asset valuation Kigali", "real estate appraisal Rwanda",
+    "valuation for loan Rwanda", "property valuation for visa", "IPPV Rwanda valuer",
+    "insurance valuation Rwanda", "property tax valuation Kigali",
+  ],
+  openGraph: {
+    title:       "Property & Asset Valuation Rwanda | KOSRES LTD",
+    description: "Professional independent valuations accepted by banks, embassies, courts and government agencies in Rwanda.",
+    url:         "https://www.kosres.rw/services/valuation",
+  },
+  alternates: { canonical: "https://www.kosres.rw/services/valuation" },
+}
 
 const ACCENT = "#1B3A5C"
 
@@ -44,15 +62,7 @@ export default function ValuationPage() {
           { name: "contact",          label: "Contact",              type: "tel",            required: true, placeholder: "+250 7XX XXX XXX" },
           { name: "propertyType",     label: "Asset Type",           type: "grouped-select", required: true, groups: PROPERTY_TYPE_GROUPS },
           { name: "valuationPurpose", label: "Purpose of Valuation", type: "select",         required: true,
-            options: [
-              "Loan Application",
-              "Buy & Sale",
-              "Bookkeeping",
-              "Expropriation",
-              "Insurance",
-              "Taxation",
-              "Visa Application",
-            ]},
+            options: ["Loan Application","Buy & Sale","Bookkeeping","Expropriation","Insurance","Taxation","Visa Application"] },
           { name: "district",         label: "District / Location",  type: "grouped-select", groups: RWANDA_DISTRICTS_BY_PROVINCE },
           { name: "upi",              label: "UPI (if available)",   type: "text",           placeholder: "e.g. 1/05/01/01/0001" },
           { name: "request",          label: "Describe the property or asset", type: "textarea", required: true,

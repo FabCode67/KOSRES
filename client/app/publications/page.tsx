@@ -1,9 +1,26 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { Calendar, User, Tag, Download, BookOpen } from "lucide-react"
 import Navbar from "@/components/Navbar"
 import { getPublications } from "@/lib/api"
 import type { ApiPublication } from "@/lib/api"
+
+export const metadata: Metadata = {
+  title: "Publications – Real Estate Market Reports & Guides Rwanda",
+  description:
+    "Read KOSRES LTD's latest real estate market reports, investment guides, property insights and news about the Kigali and Rwanda property market.",
+  keywords: [
+    "Rwanda real estate market report", "Kigali property market 2025", "real estate investment guide Rwanda",
+    "property news Kigali", "Rwanda housing market", "real estate publications Rwanda",
+  ],
+  openGraph: {
+    title:       "Real Estate Publications & Market Reports | KOSRES LTD",
+    description: "Stay informed with KOSRES LTD's market reports, investment guides and property insights for Rwanda.",
+    url:         "https://www.kosres.rw/publications",
+  },
+  alternates: { canonical: "https://www.kosres.rw/publications" },
+}
 
 export default async function PublicationsPage() {
   let pubs: ApiPublication[] = []
@@ -12,7 +29,6 @@ export default async function PublicationsPage() {
   return (
     <>
       <Navbar />
-      {/* pt-36 = 144px — clears 3-row fixed navbar (~132px) */}
       <div className="pt-36 min-h-screen bg-[oklch(0.97_0.005_80)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
 

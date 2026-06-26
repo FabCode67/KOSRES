@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import PropertiesClient from "./PropertiesClient"
 
 export const metadata: Metadata = {
   title: "Properties for Sale, Rent & Short Stay in Rwanda",
@@ -8,16 +7,15 @@ export const metadata: Metadata = {
   keywords: [
     "properties for sale Kigali", "apartments for rent Rwanda", "houses for sale Kigali",
     "commercial property Rwanda", "land for sale Rwanda", "short stay Kigali",
-    "furnished apartments Kigali", "offices for rent Rwanda", "real estate listings Rwanda",
+    "furnished apartments Kigali", "offices for rent Rwanda", "Gasabo properties",
+    "Kicukiro apartments", "real estate listings Rwanda",
   ],
   openGraph: {
     title:       "Properties for Sale & Rent in Rwanda | KOSRES LTD",
-    description: "Browse 500+ verified properties across Rwanda — residential, commercial, agricultural, industrial.",
+    description: "Browse 500+ verified properties across Rwanda. All types — residential, commercial, agricultural, industrial.",
     url:         "https://www.kosres.rw/properties",
   },
   alternates: { canonical: "https://www.kosres.rw/properties" },
 }
 
-export default function PropertiesPage() {
-  return <PropertiesClient />
-}
+export { default } from "./PropertiesClient"

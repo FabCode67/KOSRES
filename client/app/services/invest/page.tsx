@@ -1,7 +1,25 @@
+import type { Metadata } from "next"
 import ServiceLayout from "@/components/ServiceLayout"
 import ServiceRequestForm from "@/components/ServiceRequestForm"
 import { TrendingUp, Target, Shield, BarChart3 } from "lucide-react"
 import { RWANDA_DISTRICTS_BY_PROVINCE, PROPERTY_TYPE_GROUPS } from "@/lib/rwanda"
+
+export const metadata: Metadata = {
+  title: "Real Estate Investment Opportunities in Kigali & Rwanda",
+  description:
+    "Invest in Kigali real estate with expert guidance from KOSRES LTD. Discover high-return property investment opportunities across Rwanda — buy-to-rent, buy-to-develop, commercial and residential.",
+  keywords: [
+    "real estate investment Rwanda", "invest property Kigali", "property investment Rwanda",
+    "buy to rent Kigali", "real estate ROI Rwanda", "commercial property investment Rwanda",
+    "develop property Kigali", "affordable housing investment Rwanda",
+  ],
+  openGraph: {
+    title:       "Invest in Kigali Real Estate | KOSRES LTD",
+    description: "Discover high-return property investment opportunities across Rwanda. Expert guidance from RDB regulated KOSRES LTD.",
+    url:         "https://www.kosres.rw/services/invest",
+  },
+  alternates: { canonical: "https://www.kosres.rw/services/invest" },
+}
 
 const ACCENT = "#7B1113"
 

@@ -1,23 +1,24 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
+import { useSession, signOut } from "next-auth/react"
 import {
-  login as apiLogin, getStats, getAdminProperties,
+  getStats, getAdminProperties,
   getInquiries, getServiceRequests,
 } from "@/lib/api"
 import type { ApiProperty, ApiServiceRequest } from "@/lib/api"
 
-interface AdminUser { id: string; name: string; email: string; role: string }
-
 interface AdminContextValue {
+  // Session info (from NextAuth)
   token:           string | null
-  user:            AdminUser | null
+  user:            { id: string; name: string; email: string; role: string } | null
+  // App data
   stats:           any
   properties:      ApiProperty[]
   inquiries:       any[]
   serviceRequests: ApiServiceRequest[]
   loading:         boolean
-  login:           (email: string, password: string) => Promise<void>
+  // Actions
   logout:          () => void
   refresh:         () => void
   setProperties:   React.Dispatch<React.SetStateAction<ApiProperty[]>>
@@ -27,23 +28,22 @@ interface AdminContextValue {
 const AdminContext = createContext<AdminContextValue | null>(null)
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
-  const [token,           setToken]           = useState<string | null>(null)
-  const [user,            setUser]            = useState<AdminUser | null>(null)
+  const { data: session, status } = useSession()
+
   const [stats,           setStats]           = useState<any>(null)
   const [properties,      setProperties]      = useState<ApiProperty[]>([])
   const [inquiries,       setInquiries]       = useState<any[]>([])
   const [serviceRequests, setServiceRequests] = useState<ApiServiceRequest[]>([])
   const [loading,         setLoading]         = useState(false)
-  const [ready,           setReady]           = useState(false)
 
-  useEffect(() => {
-    const t = localStorage.getItem("kosres_token")
-    const u = localStorage.getItem("kosres_user")
-    if (t && u) { setToken(t); setUser(JSON.parse(u)) }
-    setReady(true)
-  }, [])
+  // Derived from NextAuth session
+  const token = session?.user?.accessToken ?? null
+  const user  = session?.user
+    ? { id: session.user.id, name: session.user.name ?? "", email: session.user.email ?? "", role: (session.user as any).role }
+    : null
 
   const fetchAll = useCallback(async () => {
+    if (!token) return
     setLoading(true)
     const results = await Promise.allSettled([
       getAdminProperties(),
@@ -53,43 +53,25 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     ])
 
     if (results[0].status === "fulfilled") setProperties(results[0].value ?? [])
-    else console.error("Properties:", (results[0] as any).reason?.message)
-
     if (results[1].status === "fulfilled") setStats(results[1].value)
-    else console.error("Stats:", (results[1] as any).reason?.message)
-
     if (results[2].status === "fulfilled") setInquiries(results[2].value ?? [])
-    else console.error("Inquiries:", (results[2] as any).reason?.message)
-
     if (results[3].status === "fulfilled") setServiceRequests(results[3].value ?? [])
-    else console.error("Service requests:", (results[3] as any).reason?.message)
 
     setLoading(false)
-  }, [])
+  }, [token])
 
-  useEffect(() => { if (ready) fetchAll() }, [ready, fetchAll])
+  // Fetch data once authenticated
+  useEffect(() => {
+    if (status === "authenticated") fetchAll()
+  }, [status, fetchAll])
 
-  const login = async (email: string, password: string) => {
-    const res = await apiLogin(email, password)
-    setToken(res.access_token); setUser(res.user)
-    localStorage.setItem("kosres_token", res.access_token)
-    localStorage.setItem("kosres_user",  JSON.stringify(res.user))
-  }
-
-  const logout = () => {
-    setToken(null); setUser(null)
-    localStorage.removeItem("kosres_token")
-    localStorage.removeItem("kosres_user")
-  }
-
+  const logout = () => signOut({ callbackUrl: "/admin/login" })
   const refresh = useCallback(() => fetchAll(), [fetchAll])
-
-  if (!ready) return null
 
   return (
     <AdminContext.Provider value={{
       token, user, stats, properties, inquiries, serviceRequests,
-      loading, login, logout, refresh, setProperties, setServiceRequests,
+      loading, logout, refresh, setProperties, setServiceRequests,
     }}>
       {children}
     </AdminContext.Provider>
