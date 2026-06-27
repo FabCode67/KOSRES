@@ -7,13 +7,13 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow:     "/",
         disallow:  [
-          "/admin/",        // never index admin portal
-          "/api/",          // never index API routes
-          "/_next/",        // never index Next.js internals
+          "/admin/",   // never index admin portal
+          "/api/",     // never index API routes
+          "/_next/",   // never index Next.js internals
         ],
       },
     ],
-    sitemap: "https://www.kosres.rw/sitemap.xml",
-    host:    "https://www.kosres.rw",
+    sitemap: "https://www.kosres.com/sitemap.xml",
+    host:    "https://www.kosres.com",
   }
 }

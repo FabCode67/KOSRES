@@ -17,22 +17,25 @@ export class Publication {
   title: string;
 
   @Column({ type: 'text' })
-  excerpt: string;          // short summary shown on cards
+  excerpt: string;
 
   @Column({ type: 'text' })
-  body: string;             // full article content (rich text / markdown)
+  body: string;
 
-  @Column({ nullable: true })
-  coverImage: string;       // Cloudinary URL
+  // DB column is cover_image
+  @Column({ name: 'cover_image', nullable: true })
+  coverImage: string;
 
-  @Column({ nullable: true })
-  documentUrl: string;      // Cloudinary PDF URL (optional)
+  // DB column is document_url
+  @Column({ name: 'document_url', nullable: true })
+  documentUrl: string;
 
-  @Column({ nullable: true })
-  documentName: string;     // original filename for display
+  // DB column is document_name
+  @Column({ name: 'document_name', nullable: true })
+  documentName: string;
 
   @Column({ length: 100, nullable: true })
-  category: string;         // e.g. "Market Report", "News", "Guide"
+  category: string;
 
   @Column({ length: 100, nullable: true })
   author: string;
@@ -44,7 +47,7 @@ export class Publication {
   status: PublicationStatus;
 
   @Column({ nullable: true })
-  slug: string;             // URL-friendly identifier
+  slug: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
