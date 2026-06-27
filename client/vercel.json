@@ -1,28 +1,6 @@
 {
-  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_API_URL": {
-      "description": "Your NestJS backend URL on Railway",
-      "required": true
-    },
-    "NEXTAUTH_URL": {
-      "description": "Your Vercel deployment URL",
-      "required": true
-    },
-    "NEXTAUTH_SECRET": {
-      "description": "Random secret string for NextAuth",
-      "required": true
-    },
-    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": {
-      "description": "Cloudinary cloud name",
-      "required": true
-    },
-    "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET": {
-      "description": "Cloudinary upload preset",
-      "required": true
-    }
-  }
+  "regions": ["fra1"]
 }
