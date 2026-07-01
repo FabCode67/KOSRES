@@ -195,11 +195,11 @@ export default function AdminStaffPage() {
             <label className={lbl}>Profile Picture</label>
             <div className="space-y-3">
               {(photoPreview || form.photo) && (
-                <div className="relative w-28 h-28 rounded-full overflow-hidden bg-white border border-slate-200">
-                  <Image src={photoPreview || form.photo!} alt="Photo preview" fill className="object-cover" sizes="112px" />
+                <div className="relative w-32 aspect-[4/5] rounded-xl overflow-hidden bg-white border border-slate-200">
+                  <Image src={photoPreview || form.photo!} alt="Photo preview" fill className="object-cover" sizes="128px" />
                   <button
                     onClick={() => { setPhotoFile(null); setPhotoPreview(""); set("photo", undefined) }}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-red-600 transition-colors">
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-red-600 transition-colors">
                     <X size={11} />
                   </button>
                 </div>
@@ -214,7 +214,7 @@ export default function AdminStaffPage() {
                   const f = e.target.files?.[0]
                   if (f) { setPhotoFile(f); setPhotoPreview(URL.createObjectURL(f)) }
                 }} />
-              <p className="text-xs text-slate-400">Recommended: square headshot, min 300×300px</p>
+              <p className="text-xs text-slate-400">Recommended: portrait photo, 4:5 ratio (e.g. 800×1000px) so it fills the card cleanly on the website.</p>
             </div>
           </div>
 
@@ -282,9 +282,9 @@ export default function AdminStaffPage() {
             <GripVertical size={16} className="text-slate-300 flex-none" />
 
             {/* Photo */}
-            <div className="relative w-14 h-14 rounded-full overflow-hidden bg-slate-50 border border-slate-200 flex-none flex items-center justify-center">
+            <div className="relative w-12 aspect-[4/5] rounded-lg overflow-hidden bg-slate-50 border border-slate-200 flex-none flex items-center justify-center">
               {member.photo ? (
-                <Image src={member.photo} alt={member.name} fill className="object-cover" sizes="56px" />
+                <Image src={member.photo} alt={member.name} fill className="object-cover" sizes="48px" />
               ) : (
                 <span className="text-xs font-bold text-slate-400">
                   {member.name.split(" ").map(w => w[0]).join("").slice(0, 2)}

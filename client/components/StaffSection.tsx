@@ -35,49 +35,80 @@ export default function StaffSection() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4">
       {staff.map(member => (
         <div
           key={member.id}
-          className="group flex flex-col items-center gap-3 bg-white rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 p-6 text-center"
+          className="card-hover group flex flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm"
         >
-          <div className="relative w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-white shadow">
+          {/* ── Photo — fills the full card width, portrait ratio ── */}
+          <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
             {member.photo ? (
-              <Image src={member.photo} alt={member.name} fill className="object-cover" sizes="96px" />
+              <Image
+                src={member.photo}
+                alt={member.name}
+                fill
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white font-black text-xl" style={{ backgroundColor: "#7B1113" }}>
+              <div
+                className="flex h-full w-full items-center justify-center font-heading text-6xl font-bold italic text-white/90"
+                style={{ background: "linear-gradient(150deg, oklch(0.42 0.19 25) 0%, oklch(0.24 0.14 25) 55%, oklch(0.12 0.01 250) 100%)" }}
+              >
                 {member.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
               </div>
             )}
-          </div>
 
-          <div>
-            <p className="font-black text-sm text-slate-800">{member.name}</p>
-            <p className="text-xs font-semibold text-[oklch(0.42_0.19_25)] mt-0.5">{member.position}</p>
+            {/* Department tag */}
             {member.department && (
-              <span className="inline-block mt-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
+              <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[oklch(0.42_0.19_25)] shadow-sm backdrop-blur-sm">
                 {member.department}
               </span>
             )}
-            {member.bio && (
-              <p className="text-xs text-slate-500 mt-2 leading-relaxed line-clamp-3">{member.bio}</p>
-            )}
+
+            {/* Gradient scrim + name/position overlay */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-4">
+              <h3 className="font-heading text-lg font-bold leading-tight text-white drop-shadow-sm">
+                {member.name}
+              </h3>
+              <p className="gold-text mt-0.5 text-xs font-bold tracking-wide uppercase">
+                {member.position}
+              </p>
+            </div>
           </div>
 
-          {(member.email || member.phone) && (
-            <div className="flex flex-col items-center gap-1 mt-1 pt-3 border-t border-border w-full">
-              {member.email && (
-                <a href={`mailto:${member.email}`} className="text-[11px] text-slate-400 hover:text-[oklch(0.42_0.19_25)] flex items-center gap-1 transition-colors">
-                  <Mail size={10} /> {member.email}
-                </a>
-              )}
-              {member.phone && (
-                <a href={`tel:${member.phone}`} className="text-[11px] text-slate-400 hover:text-[oklch(0.42_0.19_25)] flex items-center gap-1 transition-colors">
-                  <Phone size={10} /> {member.phone}
-                </a>
-              )}
-            </div>
-          )}
+          {/* ── Info strip below the photo ── */}
+          <div className="flex flex-1 flex-col gap-2.5 p-4">
+            {member.bio && (
+              <p className="line-clamp-3 text-xs leading-relaxed text-slate-500">{member.bio}</p>
+            )}
+
+            {(member.email || member.phone) && (
+              <div className="mt-auto flex items-center gap-2 border-t border-border/60 pt-3">
+                {member.email && (
+                  <a
+                    href={`mailto:${member.email}`}
+                    title={member.email}
+                    className="flex flex-1 items-center justify-center gap-1.5 truncate rounded-lg bg-slate-50 py-2 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-[oklch(0.42_0.19_25)] hover:text-white"
+                  >
+                    <Mail size={12} className="flex-none" /> <span className="truncate">Email</span>
+                  </a>
+                )}
+                {member.phone && (
+                  <a
+                    href={`tel:${member.phone}`}
+                    title={member.phone}
+                    aria-label={`Call ${member.name}`}
+                    className="flex h-8 w-9 flex-none items-center justify-center rounded-lg bg-slate-50 text-slate-600 transition-colors hover:bg-[oklch(0.42_0.19_25)] hover:text-white"
+                  >
+                    <Phone size={13} />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       ))}
     </div>
