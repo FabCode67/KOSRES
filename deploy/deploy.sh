@@ -12,7 +12,7 @@ warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 step() { echo -e "\n${RED}[→]${NC} $1"; }
 
 APP_DIR="/var/www/kosres"
-REPO_URL="https://github.com/YOUR_GITHUB_USERNAME/KOSRES.git"  # ← CHANGE THIS
+REPO_URL="https://github.com/FabCode67/KOSRES.git"  # ← CHANGE THIS
 BRANCH="main"
 
 echo ""
