@@ -12,23 +12,29 @@ import { PublicationsModule }    from './publications/publications.module';
 import { PartnersModule }        from './partners/partners.module';
 import { CarsModule }            from './cars/cars.module';
 
-// SSL only for external cloud databases (Neon, RDS, etc.)
-// Disabled for self-hosted local PostgreSQL on Contabo/Hetzner
-const dbUrl = process.env.DATABASE_URL ?? '';
-const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
-
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type:        'postgres',
-      url:         dbUrl,
-      ssl:         isLocalDb ? false : { rejectUnauthorized: false },
-      entities:    [join(__dirname, '**/*.entity{.ts,.js}')],
-      migrations:  [join(__dirname, 'migrations/*{.ts,.js}')],
-      synchronize: false,
-      logging:     process.env.NODE_ENV === 'development',
+    // Load .env FIRST before anything else
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+
+    // Use forRootAsync so DATABASE_URL is read AFTER dotenv loads
+    TypeOrmModule.forRootAsync({
+      useFactory: () => {
+        const dbUrl = process.env.DATABASE_URL ?? '';
+        const isLocal = dbUrl.includes('localhost') ||
+                        dbUrl.includes('127.0.0.1');
+        return {
+          type:        'postgres',
+          url:         dbUrl,
+          ssl:         isLocal ? false : { rejectUnauthorized: false },
+          entities:    [join(__dirname, '**/*.entity{.ts,.js}')],
+          migrations:  [join(__dirname, 'migrations/*{.ts,.js}')],
+          synchronize: false,
+          logging:     false,
+        };
+      },
     }),
+
     AuthModule,
     PropertiesModule,
     InquiriesModule,
