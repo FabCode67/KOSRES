@@ -12,13 +12,18 @@ import { PublicationsModule }    from './publications/publications.module';
 import { PartnersModule }        from './partners/partners.module';
 import { CarsModule }            from './cars/cars.module';
 
+// SSL only for external cloud databases (Neon, RDS, etc.)
+// Disabled for self-hosted local PostgreSQL on Contabo/Hetzner
+const dbUrl = process.env.DATABASE_URL ?? '';
+const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type:        'postgres',
-      url:         process.env.DATABASE_URL,
-      ssl:         { rejectUnauthorized: false },
+      url:         dbUrl,
+      ssl:         isLocalDb ? false : { rejectUnauthorized: false },
       entities:    [join(__dirname, '**/*.entity{.ts,.js}')],
       migrations:  [join(__dirname, 'migrations/*{.ts,.js}')],
       synchronize: false,
