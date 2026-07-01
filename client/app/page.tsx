@@ -24,6 +24,7 @@ import HeroBanner from "@/components/HeroBanner"
 import PropertyCard from "@/components/PropertyCard"
 import PublicationsPreview from "@/components/PublicationsPreview"
 import PartnersSection from "@/components/PartnersSection"
+import StaffSection from "@/components/StaffSection"
 import { getFeaturedProperties } from "@/lib/api"
 import type { ApiProperty } from "@/lib/api"
 
@@ -202,6 +203,23 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── TEAM ── */}
+      <section className="border-t border-border bg-white py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mb-10 flex items-end justify-between">
+            <div>
+              <p className="mb-2 text-sm font-semibold tracking-widest text-[oklch(0.42_0.19_25)] uppercase">Meet the Experts</p>
+              <h2 className="text-3xl font-black sm:text-4xl">Our Team</h2>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">The dedicated professionals behind KOSRES LTD.</p>
+            </div>
+            <Link href="/team" className="hidden items-center gap-1 text-sm font-semibold text-[oklch(0.42_0.19_25)] hover:underline sm:inline-flex">
+              View all <ChevronRight size={16} />
+            </Link>
+          </div>
+          <StaffSection />
         </div>
       </section>
 
