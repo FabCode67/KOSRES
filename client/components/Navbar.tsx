@@ -116,6 +116,12 @@ export default function Navbar() {
             Publications
           </Link>
           <Link
+            href="/team"
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${pathname.startsWith("/team") ? "bg-red-50 text-[oklch(0.42_0.19_25)]" : "text-slate-600 hover:bg-muted hover:text-[oklch(0.42_0.19_25)]"}`}
+          >
+            Team
+          </Link>
+          <Link
             href="/#about"
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-muted hover:text-[oklch(0.42_0.19_25)]"
           >
@@ -213,6 +219,7 @@ export default function Navbar() {
             {[
               { href: "/properties", label: "Properties" },
               { href: "/publications", label: "Publications" },
+              { href: "/team", label: "Team" },
               { href: "/#about", label: "About" },
               { href: "/#contact", label: "Contact" },
             ].map((l) => (

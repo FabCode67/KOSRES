@@ -48,6 +48,7 @@ const stats = [
 const quickLinks = [
   { label: "Properties",   href: "/properties" },
   { label: "Publications", href: "/publications" },
+  { label: "Team",         href: "/team" },
   { label: "Invest",       href: "/services/invest" },
   { label: "Cars",         href: "/services/cars" },
   { label: "Valuation",    href: "/services/valuation" },

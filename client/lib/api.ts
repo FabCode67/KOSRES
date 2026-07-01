@@ -37,6 +37,12 @@ export type ApiPartner = {
   active: boolean; order: number
   createdAt: string; updatedAt: string
 }
+export type ApiStaff = {
+  id: string; name: string; position: string; department?: string
+  photo?: string; bio?: string; email?: string; phone?: string
+  active: boolean; order: number
+  createdAt: string; updatedAt: string
+}
 export type ApiCar = {
   id: string
   title: string
@@ -269,6 +275,49 @@ export async function uploadPartnerLogo(id: string, file: File): Promise<ApiPart
   const fd = new FormData(); fd.append("file", file)
   const res = await fetch(`${API_URL}/partners/${id}/logo`, { method: "POST", body: fd })
   if (!res.ok) throw new Error("Failed to upload logo")
+  return res.json()
+}
+
+// ── Staff ─────────────────────────────────────────────────────────────
+function authHeaders(token?: string): Record<string, string> {
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+export async function getStaff(all = false): Promise<ApiStaff[]> {
+  const res = await fetch(`${API_URL}/staff${all ? "?all=true" : ""}`, { cache: "no-store" })
+  if (!res.ok) throw new Error("Failed to fetch staff")
+  return res.json()
+}
+export async function getStaffMember(id: string): Promise<ApiStaff> {
+  const res = await fetch(`${API_URL}/staff/${id}`, { next: { revalidate: 30 } })
+  if (!res.ok) throw new Error("Staff member not found")
+  return res.json()
+}
+export async function createStaff(data: Partial<ApiStaff>, token?: string): Promise<ApiStaff> {
+  const res = await fetch(`${API_URL}/staff`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(token) },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.message || "Failed to create staff member") }
+  return res.json()
+}
+export async function updateStaff(id: string, data: Partial<ApiStaff>, token?: string): Promise<ApiStaff> {
+  const res = await fetch(`${API_URL}/staff/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders(token) },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.message || "Failed to update staff member") }
+  return res.json()
+}
+export async function deleteStaff(id: string, token?: string): Promise<void> {
+  const res = await fetch(`${API_URL}/staff/${id}`, { method: "DELETE", headers: { ...authHeaders(token) } })
+  if (!res.ok) throw new Error("Failed to delete staff member")
+}
+export async function uploadStaffPhoto(id: string, file: File, token?: string): Promise<ApiStaff> {
+  const fd = new FormData(); fd.append("file", file)
+  const res = await fetch(`${API_URL}/staff/${id}/photo`, { method: "POST", headers: { ...authHeaders(token) }, body: fd })
+  if (!res.ok) throw new Error("Failed to upload photo")
   return res.json()
 }
 
