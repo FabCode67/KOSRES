@@ -12,26 +12,32 @@ warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 step() { echo -e "\n${RED}[→]${NC} $1"; }
 
 APP_DIR="/var/www/kosres"
-REPO_URL="https://github.com/FabCode67/KOSRES.git"  # ← CHANGE THIS
+REPO_URL="https://github.com/YOUR_GITHUB_USERNAME/KOSRES.git"  # ← CHANGE THIS
 BRANCH="main"
 
 echo ""
-echo "╔══════════════════════════════════════════════════╗"
-echo "║   KOSRES Deploy — $(date '+%d/%m/%Y %H:%M')         ║"
-echo "╚══════════════════════════════════════════════════╝"
+echo "╔══════════════════════════════════════════════════════╗"
+echo "║   KOSRES Deploy — $(date '+%d/%m/%Y %H:%M')              ║"
+echo "╚══════════════════════════════════════════════════════╝"
 echo ""
 
 # ── Check env files exist ─────────────────────────────────────
 if [ ! -f /root/kosres-env/server.env ]; then
   echo -e "${RED}ERROR:${NC} /root/kosres-env/server.env not found!"
-  echo "Create it first — see CONTABO-GUIDE.md Step 5"
   exit 1
 fi
 if [ ! -f /root/kosres-env/client.env ]; then
   echo -e "${RED}ERROR:${NC} /root/kosres-env/client.env not found!"
-  echo "Create it first — see CONTABO-GUIDE.md Step 5"
   exit 1
 fi
+
+# ── Ensure global CLI tools are installed ─────────────────────
+step "Checking global dependencies..."
+if ! command -v nest &> /dev/null; then
+  warn "NestJS CLI not found — installing..."
+  npm install -g @nestjs/cli
+fi
+log "NestJS CLI: $(nest --version 2>/dev/null || echo 'ok')"
 
 # ── Pull / clone code ─────────────────────────────────────────
 step "Getting latest code from GitHub..."
@@ -39,7 +45,7 @@ if [ -d "$APP_DIR/.git" ]; then
   cd $APP_DIR
   git fetch origin
   git reset --hard origin/$BRANCH
-  log "Code updated"
+  log "Code updated to latest commit"
 else
   git clone -b $BRANCH $REPO_URL $APP_DIR
   cd $APP_DIR
@@ -57,12 +63,12 @@ step "Building NestJS API..."
 cd $APP_DIR/server
 npm install --omit=dev
 npm run build
-log "NestJS built"
+log "NestJS built successfully"
 
 # ── Run migrations ────────────────────────────────────────────
 step "Running database migrations..."
 npm run migration:run
-log "Migrations complete"
+log "Migrations complete — all tables ready"
 
 # ── Start / reload NestJS ─────────────────────────────────────
 step "Starting NestJS with PM2..."
@@ -84,7 +90,7 @@ step "Building Next.js frontend..."
 cd $APP_DIR/client
 npm install --omit=dev
 npm run build
-log "Next.js built"
+log "Next.js built successfully"
 
 # ── Start / reload Next.js ────────────────────────────────────
 step "Starting Next.js with PM2..."
@@ -106,6 +112,7 @@ fi
 pm2 save
 log "PM2 state saved (auto-restarts on reboot)"
 
+# ── Done ──────────────────────────────────────────────────────
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║                  ✅ DEPLOY COMPLETE                      ║"
