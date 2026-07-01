@@ -1,13 +1,17 @@
 #!/bin/bash
 # ============================================================
-#  KOSRES LTD — SSL Certificate Setup
-#  Run AFTER nginx is installed and DNS is pointing to server
-#    bash ssl-setup.sh yourdomain.com
+#  KOSRES LTD — SSL Certificate Setup (kosres.com)
+#  Run AFTER nginx is installed AND DNS is pointing to server
+#    bash ssl-setup.sh
 # ============================================================
+set -e
 
-DOMAIN=${1:-"kosres.rw"}
+DOMAIN="kosres.com"
+EMAIL="admin@kosres.com"
 
-echo "Setting up SSL for $DOMAIN and www.$DOMAIN and api.$DOMAIN..."
+echo "Installing SSL certificates for:"
+echo "  $DOMAIN, www.$DOMAIN, api.$DOMAIN"
+echo ""
 
 certbot --nginx \
   -d $DOMAIN \
@@ -15,12 +19,12 @@ certbot --nginx \
   -d api.$DOMAIN \
   --non-interactive \
   --agree-tos \
-  --email admin@$DOMAIN \
+  --email $EMAIL \
   --redirect
 
-# Auto-renew cron (certbot usually sets this up, but just in case)
+# Auto-renew cron
 (crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet && systemctl reload nginx") | crontab -
 
 echo ""
-echo "✅ SSL certificates installed!"
-echo "Certificates auto-renew via cron every night at 3am"
+echo "✅ SSL installed for $DOMAIN, www.$DOMAIN, api.$DOMAIN"
+echo "   Auto-renews nightly at 3:00 AM"
