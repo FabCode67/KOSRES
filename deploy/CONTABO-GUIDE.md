@@ -128,15 +128,15 @@ Copy and paste this exactly, replacing the YOUR_... values:
 ────────────────────────────────────────────────────────────
 DATABASE_URL=postgresql://kosres_admin:YOUR_DB_PASSWORD@localhost:5432/kosres
 JWT_SECRET=YOUR_FIRST_GENERATED_SECRET
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=dfghjkl
 PORT=3001
 NODE_ENV=production
 FRONTEND_URL=https://www.kosres.com,https://kosres.com
-ADMIN_EMAIL=admin@kosres.com
+ADMIN_EMAIL=ahjhgfdfg
 ADMIN_PASSWORD=YOUR_STRONG_PASSWORD
-CLOUDINARY_CLOUD_NAME=dnhpmvk2p
-CLOUDINARY_API_KEY=183874587386655
-CLOUDINARY_API_SECRET=4VsPE1f1NsmFOA2i5zujkE_pOao
+CLOUDINARY_CLOUD_NAME=dfghj
+CLOUDINARY_API_KEY=sdfgh
+CLOUDINARY_API_SECRET=erfghjk
 SITE_URL=https://www.kosres.com
 ────────────────────────────────────────────────────────────
 Save: press Ctrl+O → Enter → Ctrl+X
@@ -153,13 +153,13 @@ Where to get the values:
 
 Copy and paste this exactly:
 ────────────────────────────────────────────────────────────
-NEXT_PUBLIC_API_URL=https://api.kosres.com/api
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnhpmvk2p
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=kosres_unsigned
+NEXT_PUBLIC_API_URL=https:test.com
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=1234567
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=qwertyui
 NEXT_PUBLIC_SITE_URL=https://www.kosres.com
-NEXTAUTH_URL=https://www.kosres.com
+NEXTAUTH_URL=httpssdfghjk
 NEXTAUTH_SECRET=YOUR_SECOND_GENERATED_SECRET
-NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=kawZZFuJo16ievLo6DZOgHOYo6RJL9z6V15zkq-vPdI
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=dfghjklkjhgfdfghjkk
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
 ────────────────────────────────────────────────────────────
 Save: press Ctrl+O → Enter → Ctrl+X
@@ -339,7 +339,7 @@ propagation then try again.
 
 ### Test admin login:
   Go to https://www.kosres.com/admin
-  Email:    admin@kosres.com
+  Email:    1234
   Password: YOUR_STRONG_PASSWORD (what you set in server.env)
 
 
