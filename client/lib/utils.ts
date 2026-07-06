@@ -44,19 +44,22 @@ export function formatPriceCompact(
   const freq = frequency ? `/${frequency}` : ""
 
   if (unit === "USD") {
-    if (price >= 1_000_000) return `$${(price / 1_000_000).toFixed(1).replace(/\.0$/, "")}M${freq}`
-    if (price >= 1_000)     return `$${(price / 1_000).toFixed(0)}K${freq}`
+    if (price >= 1_000_000)
+      return `$${(price / 1_000_000).toFixed(1).replace(/\.0$/, "")}M${freq}`
+    if (price >= 1_000) return `$${(price / 1_000).toFixed(0)}K${freq}`
     return `$${price}${freq}`
   }
 
   // RWF compact
-  if (price >= 1_000_000_000) return `${(price / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B RWF${freq}`
-  if (price >= 1_000_000)     return `${(price / 1_000_000).toFixed(1).replace(/\.0$/, "")}M RWF${freq}`
-  if (price >= 1_000)         return `${(price / 1_000).toFixed(0)}K RWF${freq}`
+  if (price >= 1_000_000_000)
+    return `${(price / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B RWF${freq}`
+  if (price >= 1_000_000)
+    return `${(price / 1_000_000).toFixed(1).replace(/\.0$/, "")}M RWF${freq}`
+  if (price >= 1_000) return `${(price / 1_000).toFixed(0)}K RWF${freq}`
   return `${price} RWF${freq}`
 }
 
-export const WHATSAPP_NUMBER = "250792871729"
+export const WHATSAPP_NUMBER = "250781209709"
 export const INSTAGRAM_HANDLE = "kosresltd"
 export const FACEBOOK_PAGE = "kosresltd"
 

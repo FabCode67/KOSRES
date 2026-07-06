@@ -76,10 +76,10 @@ export default function Navbar() {
       {/* ── Top contact bar ── */}
       <div className="flex justify-end gap-6 bg-[oklch(0.12_0.01_250)] px-4 py-1.5 text-xs text-white">
         <a
-          href="tel:+250792871729"
+          href="tel:+250781209709"
           className="flex items-center gap-1.5 transition-colors hover:text-amber-300"
         >
-          <Phone size={11} /> +250 792 871 729
+          <Phone size={11} /> +250 781 209 709
         </a>
         <a
           href="mailto:kosresltd@gmail.com"
