@@ -96,7 +96,7 @@ export async function getProperties(q: PropertyQuery = {}): Promise<PaginatedPro
   return res.json()
 }
 export async function getAdminProperties(): Promise<ApiProperty[]> {
-  const res = await fetch(`${API_URL}/properties?limit=500`, { cache: "no-store" })
+  const res = await fetch(`${API_URL}/properties?limit=500&all=true`, { cache: "no-store" })
   if (!res.ok) throw new Error("Failed to fetch admin properties")
   const json = await res.json()
   return Array.isArray(json) ? json : (json.data ?? [])

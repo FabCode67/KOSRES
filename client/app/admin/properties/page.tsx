@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { MapPin, Trash2, Eye, Edit2, ImageIcon, RefreshCw, Loader2 } from "lucide-react"
+import { MapPin, Trash2, Eye, Edit2, ImageIcon, RefreshCw, Loader2, Tag, Undo2 } from "lucide-react"
 import AdminShell        from "@/components/AdminShell"
 import EditPropertyModal from "@/components/EditPropertyModal"
 import ImageManagerModal from "@/components/ImageManagerModal"
@@ -28,6 +28,12 @@ export default function PropertiesPage() {
   const handleToggleFeatured = async (p: ApiProperty) => {
     await updateProperty(p.id, { featured: !p.featured })
     setProperties(prev => prev.map(x => x.id === p.id ? { ...x, featured: !x.featured } : x))
+  }
+
+  const handleToggleSold = async (p: ApiProperty) => {
+    const nextStatus = p.status === "sold" ? "active" : "sold"
+    const updated = await updateProperty(p.id, { status: nextStatus })
+    setProperties(prev => prev.map(x => x.id === p.id ? updated : x))
   }
 
   const handleSaved = (updated: ApiProperty) => {
@@ -115,8 +121,10 @@ export default function PropertiesPage() {
                   : "bg-amber-50 text-amber-700"
                 }`}>{p.offerType}</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                  p.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
-                }`}>{p.status}</span>
+                  p.status === "active" ? "bg-emerald-50 text-emerald-700"
+                  : p.status === "sold" ? "bg-slate-800 text-white"
+                  : "bg-slate-100 text-slate-500"
+                }`}>{p.status === "sold" ? "SOLD" : p.status}</span>
                 {p.featured && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-700">
                     ⭐ Featured
@@ -128,6 +136,16 @@ export default function PropertiesPage() {
             {/* Actions */}
             <div className="flex flex-col items-end gap-2 flex-none">
               <div className="flex items-center gap-1">
+                {/* Mark sold / restore */}
+                <button onClick={() => handleToggleSold(p)}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    p.status === "sold"
+                      ? "text-emerald-600 hover:bg-emerald-50"
+                      : "text-muted-foreground hover:bg-slate-800 hover:text-white"
+                  }`}
+                  title={p.status === "sold" ? "Restore to Active" : "Mark as Sold"}>
+                  {p.status === "sold" ? <Undo2 size={14} /> : <Tag size={14} />}
+                </button>
                 {/* Image manager */}
                 <button onClick={() => setImageProperty(p)}
                   className="p-1.5 rounded-lg hover:bg-purple-50 transition-colors text-muted-foreground hover:text-purple-600"

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike, FindManyOptions } from 'typeorm';
+import { Repository, ILike, In, FindManyOptions } from 'typeorm';
 import { Property, PropertyStatus } from './property.entity';
 import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto } from './property.dto';
 import { User } from '../users/user.entity';
@@ -14,7 +14,7 @@ export class PropertiesService {
 
   async findAll(query: PropertyQueryDto) {
     const {
-      search, offerType, category, district, status,
+      search, offerType, category, district, status, all,
       featured, page = 1, limit = 12,
     } = query;
 
@@ -23,7 +23,14 @@ export class PropertiesService {
     if (category)  where.category  = category;
     if (district)  where.district  = district;
     if (featured !== undefined) where.featured = featured;
-    where.status = status || PropertyStatus.ACTIVE;
+    // Public browsing shows Active + Sold (sold listings stay visible with a badge
+    // to build trust/track record). Rented & Inactive stay hidden unless explicitly requested.
+    // `all=true` (admin dashboard) bypasses this and returns every status.
+    if (status) {
+      where.status = status;
+    } else if (!all) {
+      where.status = In([PropertyStatus.ACTIVE, PropertyStatus.SOLD]);
+    }
 
     const options: FindManyOptions<Property> = {
       where: search
@@ -33,7 +40,7 @@ export class PropertiesService {
             { ...where, propertyType: ILike(`%${search}%`) },
           ]
         : where,
-      order: { featured: 'DESC', createdAt: 'DESC' },
+      order: { status: 'ASC', featured: 'DESC', createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
       relations: ['createdBy'],

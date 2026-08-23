@@ -101,6 +101,8 @@ export class PropertyQueryDto {
   @ApiPropertyOptional({ enum: PropertyCategory }) @IsOptional() @IsEnum(PropertyCategory) category?: PropertyCategory;
   @ApiPropertyOptional() @IsOptional() @IsString() district?: string;
   @ApiPropertyOptional({ enum: PropertyStatus }) @IsOptional() @IsEnum(PropertyStatus) status?: PropertyStatus;
+  @ApiPropertyOptional({ description: 'Admin use: bypass the default Active+Sold public filter and return every status' })
+  @IsOptional() @Transform(({ value }) => value === 'true') all?: boolean;
   @ApiPropertyOptional() @IsOptional() @Transform(({ value }) => value === 'true') featured?: boolean;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() page?: number = 1;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() limit?: number = 12;

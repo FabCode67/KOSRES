@@ -31,6 +31,7 @@ export default function PropertyDetailClient({ property, related }: Props) {
   const images  = property.images?.length ? property.images : []
   const hasImgs = images.length > 0
   const offer   = OFFER_LABELS[property.offerType] ?? OFFER_LABELS.sale
+  const isSold  = property.status === "sold"
   const waMsg   = `Hi KOSRES, I'm interested in "${property.title}" (ID: ${property.id}). Please share more details.`
 
   const prev = () => setImgIdx(i => (i - 1 + images.length) % images.length)
@@ -59,7 +60,7 @@ export default function PropertyDetailClient({ property, related }: Props) {
               <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-slate-200 shadow-md">
                 {hasImgs ? (
                   <Image src={images[imgIdx]} alt={property.title} fill priority
-                    className="object-cover" sizes="(max-width:1024px)100vw,66vw" />
+                    className={`object-cover ${isSold ? "grayscale-[35%] brightness-75" : ""}`} sizes="(max-width:1024px)100vw,66vw" />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
                     <Building2 size={48} strokeWidth={1} />
@@ -67,11 +68,17 @@ export default function PropertyDetailClient({ property, related }: Props) {
                   </div>
                 )}
 
-                <span className={`absolute top-4 left-4 text-xs font-bold px-3 py-1.5 rounded-full shadow ${offer.cls}`}>
-                  {offer.label}
-                </span>
+                {isSold ? (
+                  <span className="absolute top-4 left-4 flex items-center gap-1.5 text-sm font-black tracking-widest px-4 py-2 rounded-full shadow-lg bg-slate-900 text-white">
+                    SOLD
+                  </span>
+                ) : (
+                  <span className={`absolute top-4 left-4 text-xs font-bold px-3 py-1.5 rounded-full shadow ${offer.cls}`}>
+                    {offer.label}
+                  </span>
+                )}
 
-                {property.featured && (
+                {property.featured && !isSold && (
                   <span className="absolute top-4 right-4 flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400 text-black shadow">
                     <Star size={11} className="fill-black" /> Featured
                   </span>
@@ -186,17 +193,28 @@ export default function PropertyDetailClient({ property, related }: Props) {
               {/* top-36 matches the navbar height so the card sticks just below it */}
               <div className="bg-white rounded-2xl border border-border shadow-lg p-6 sticky top-36 space-y-5">
                 <div>
-                  <p className="text-3xl font-black text-[oklch(0.42_0.19_25)] leading-tight">
+                  <p className={`text-3xl font-black leading-tight ${isSold ? "text-slate-400 line-through decoration-2" : "text-[oklch(0.42_0.19_25)]"}`}>
                     {formatPriceCompact(Number(property.price), property.priceUnit, property.priceFrequency)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {formatPrice(Number(property.price), property.priceUnit, property.priceFrequency)}
+                    {isSold ? "This property has been sold" : formatPrice(Number(property.price), property.priceUnit, property.priceFrequency)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Listed by KOSRES LTD</p>
                 </div>
 
                 <div className="h-px bg-border" />
 
+                {isSold ? (
+                  <div className="bg-slate-50 border border-border rounded-xl p-4 text-center">
+                    <p className="text-sm font-bold text-slate-700 mb-1">This property has been sold</p>
+                    <p className="text-xs text-muted-foreground mb-4">Looking for something similar? Get in touch and we'll help you find one.</p>
+                    <a href={whatsappLink(`Hi KOSRES, I saw "${property.title}" is sold — do you have similar properties available?`)}
+                      target="_blank" rel="noopener noreferrer"
+                      className="whatsapp-btn flex items-center justify-center gap-2 text-white font-bold py-3 rounded-xl transition-opacity hover:opacity-90 text-sm w-full">
+                      <WhatsAppIcon size={17} /> Ask about similar listings
+                    </a>
+                  </div>
+                ) : (
                 <div>
                   <p className="text-sm font-bold text-slate-700 mb-3">Enquire about this property</p>
                   <div className="flex flex-col gap-2.5">
@@ -214,6 +232,7 @@ export default function PropertyDetailClient({ property, related }: Props) {
                     </a>
                   </div>
                 </div>
+                )}
 
                 <div className="h-px bg-border" />
 

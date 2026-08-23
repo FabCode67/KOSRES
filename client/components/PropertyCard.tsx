@@ -7,7 +7,9 @@ import type { Property } from "@/lib/properties"
 import { formatPrice, formatPriceCompact, whatsappLink, instagramLink, facebookLink } from "@/lib/utils"
 import { WhatsAppIcon, InstagramIcon, FacebookIcon } from "@/components/social-icons"
 
-export default function PropertyCard({ property }: { property: Property }) {
+export default function PropertyCard({ property }: { property: Property & { status?: string } }) {
+  const isSold = property.status === "sold"
+
   const offerBadge =
     property.offerType === "sale"
       ? { label: "For Sale",   cls: "bg-[oklch(0.42_0.19_25)] text-white" }
@@ -18,20 +20,29 @@ export default function PropertyCard({ property }: { property: Property }) {
   const waMsg = `Hi KOSRES, I'm interested in "${property.title}" (ID: ${property.id}). Please share more details.`
 
   return (
-    <div className="card-hover bg-card rounded-xl overflow-hidden border border-border shadow-sm flex flex-col">
+    <div className={`card-hover bg-card rounded-xl overflow-hidden border border-border shadow-sm flex flex-col ${isSold ? "opacity-90" : ""}`}>
       {/* Image */}
       <Link href={`/properties/${property.id}`} className="relative block h-52 overflow-hidden">
         <Image
           src={property.images[0]}
           alt={property.title}
           fill
-          className="object-cover transition-transform duration-500 hover:scale-105"
+          className={`object-cover transition-transform duration-500 hover:scale-105 ${isSold ? "grayscale-[45%] brightness-75" : ""}`}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-        <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${offerBadge.cls}`}>
-          {offerBadge.label}
-        </span>
-        {property.featured && (
+        {isSold ? (
+          <>
+            <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+            <span className="absolute top-3 left-3 flex items-center gap-1 text-xs font-black tracking-widest px-3 py-1.5 rounded-full bg-slate-900 text-white shadow-lg">
+              SOLD
+            </span>
+          </>
+        ) : (
+          <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${offerBadge.cls}`}>
+            {offerBadge.label}
+          </span>
+        )}
+        {property.featured && !isSold && (
           <span className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-400 text-black">
             ⭐ Featured
           </span>
@@ -69,15 +80,21 @@ export default function PropertyCard({ property }: { property: Property }) {
 
         {/* Price — compact + full on hover */}
         <div className="mt-auto">
-          <p className="text-xl font-black text-[oklch(0.42_0.19_25)] leading-tight">
+          <p className={`text-xl font-black leading-tight ${isSold ? "text-slate-400 line-through decoration-2" : "text-[oklch(0.42_0.19_25)]"}`}>
             {formatPriceCompact(property.price, property.priceUnit, property.priceFrequency)}
           </p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            {formatPrice(property.price, property.priceUnit, property.priceFrequency)}
+            {isSold ? "This property has been sold" : formatPrice(property.price, property.priceUnit, property.priceFrequency)}
           </p>
         </div>
 
         {/* Contact buttons */}
+        {isSold ? (
+          <Link href={`/properties/${property.id}`}
+            className="flex items-center justify-center gap-1.5 text-slate-600 text-xs font-semibold py-2.5 rounded-lg border border-border hover:bg-muted transition-colors mt-1">
+            View details
+          </Link>
+        ) : (
         <div className="flex items-center gap-2 pt-1 border-t border-border/50">
           <a
             href={whatsappLink(waMsg)}
@@ -106,6 +123,7 @@ export default function PropertyCard({ property }: { property: Property }) {
             <FacebookIcon size={15} />
           </a>
         </div>
+        )}
       </div>
     </div>
   )
