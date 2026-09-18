@@ -5,7 +5,7 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, List, Plus, MessageSquare,
-  ClipboardList, BookOpen, Home, LogOut, Loader2, Globe, Car, Users,
+  ClipboardList, BookOpen, Home, LogOut, Loader2, Globe, Car, Users, Ruler,
 } from "lucide-react"
 import { useAdmin } from "@/components/AdminContext"
 
@@ -19,6 +19,7 @@ const navItems = [
   { label: "Publications",     href: "/admin/publications",     icon: BookOpen        },
   { label: "Partners",         href: "/admin/partners",         icon: Globe           },
   { label: "Staff",            href: "/admin/staff",            icon: Users           },
+  { label: "Valuation",        href: "/valuation",              icon: Ruler           },
   { label: "Inquiries",        href: "/admin/inquiries",        icon: MessageSquare   },
   { label: "Service Requests", href: "/admin/service-requests", icon: ClipboardList   },
 ]

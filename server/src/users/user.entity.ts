@@ -8,6 +8,8 @@ import { Property } from '../properties/property.entity';
 export enum UserRole {
   ADMIN = 'admin',
   AGENT = 'agent',
+  VALUER = 'valuer',
+  TECHNICIAN = 'technician',
 }
 
 @Entity('users')
@@ -30,6 +32,9 @@ export class User {
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
+
+  @Column({ name: 'license_number', nullable: true })
+  licenseNumber: string; // for VALUER role — e.g. "RC/IRPV/259/2023"
 
   @OneToMany(() => Property, (p) => p.createdBy)
   properties: Property[];
