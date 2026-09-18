@@ -62,7 +62,7 @@ export interface ValuationRequestSummary {
 export interface ValuationRequestDetail extends ValuationRequestSummary {
   workflowTransitions: { fromStatus?: RequestStatus; toStatus: RequestStatus; reason?: string; at: string }[]
   results: ValuationResult[]
-  calculations: { id: string; executedAt: string; outputsSnapshot: CostApproachBreakdown }[]
+  calculations: { id: string; executedAt: string; outputsSnapshot: CostApproachBreakdown; engineVersion?: { id: string; engine?: { code: string } } }[]
   property?: ValuationPropertyDetail
   engineVersion?: { id: string; version: number; engine?: { code: string; name: string } }
   inspections?: { id: string; status: string; inspectionDate?: string; technician?: { id: string; name: string }; notes: { id: string; field: string; observation: string }[] }[]
@@ -77,6 +77,7 @@ export interface ValuationResult {
   source?: string
   justification?: string
   valuationDate: string
+  calculation?: { id: string }
 }
 
 export interface ValuationPropertyDetail {
@@ -90,11 +91,13 @@ export interface ValuationPropertyDetail {
   occupancyStatus?: string
   location?: {
     province?: string; district?: string; sector?: string; cell?: string; village?: string
-    accessibility?: string; neighborhoodQuality?: string
+    accessibility?: string; neighborhoodQuality?: string; distanceToCbdKm?: number
   }
   land?: { plotSizeSqm?: number; zoning?: string; topography?: string }
   buildings: { id: string; name: string; areaSqm: number; constructionYear?: number; condition?: string }[]
   externalWorks: { id: string; name: string; unit: string; quantity: number }[]
+  services?: { id: string; type: string; status: string; provider?: string }[]
+  amenities?: { id: string; name: string; distanceKm?: number }[]
 }
 
 export interface CostApproachBreakdown {
@@ -286,6 +289,12 @@ export function addBuilding(token: string, propertyId: string, data: any) {
 }
 export function addExternalWork(token: string, propertyId: string, data: any) {
   return jsonFetch(`/valuation/properties/${propertyId}/external-works`, token, { method: "POST", body: JSON.stringify(data) })
+}
+export function addService(token: string, propertyId: string, data: { type: string; status: string; provider?: string }) {
+  return jsonFetch(`/valuation/properties/${propertyId}/services`, token, { method: "POST", body: JSON.stringify(data) })
+}
+export function addAmenity(token: string, propertyId: string, data: { name: string; distanceKm?: number }) {
+  return jsonFetch(`/valuation/properties/${propertyId}/amenities`, token, { method: "POST", body: JSON.stringify(data) })
 }
 
 // ── Rate tables & calculation rules ──────────────────────────────────

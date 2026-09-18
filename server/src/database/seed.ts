@@ -430,7 +430,52 @@ async function seed() {
       { property: { id: property.id }, name: 'Foul drainage system', unit: 'lump_sum', quantity: 1 },
     ]);
 
-    console.log(`✅ Seeded sample valuation request ${sampleReference} (ready for engine selection → Cost Approach)`);
+    // Services — matches the real report: "Water supply from WASAC is connected…
+    // Power supply from EUCL is connected…"
+    const serviceRepo = AppDataSource.getRepository('valuation_property_services');
+    await serviceRepo.save([
+      { property: { id: property.id }, type: 'water', status: 'connected', provider: 'WASAC' },
+      { property: { id: property.id }, type: 'electricity', status: 'connected', provider: 'EUCL' },
+      { property: { id: property.id }, type: 'drainage', status: 'not_connected', provider: null },
+      { property: { id: property.id }, type: 'internet', status: 'connected', provider: 'MTN Rwanda' },
+    ]);
+
+    // Amenities — matches the real report: "Road Market, Schools, and Shops in
+    // approximately a kilometer… 800 meters from ADEPR ITORERO RYAMUGOMERO"
+    const amenityRepo = AppDataSource.getRepository('valuation_property_amenities');
+    await amenityRepo.save([
+      { property: { id: property.id }, name: 'ADEPR Itorero Ryamugomero (church)', distanceKm: 0.8 },
+      { property: { id: property.id }, name: 'Local market', distanceKm: 1.0 },
+      { property: { id: property.id }, name: 'Primary school', distanceKm: 1.0 },
+      { property: { id: property.id }, name: 'Shops / trading center', distanceKm: 1.0 },
+      { property: { id: property.id }, name: 'Kamonyi District Hospital', distanceKm: 4.5 },
+      { property: { id: property.id }, name: 'Tarmac road (RN1)', distanceKm: 2.0 },
+    ]);
+
+    // Images — placeholder evidence photos, categorized as a real inspection would capture
+    const imageRepo = AppDataSource.getRepository('valuation_property_images');
+    await imageRepo.save([
+      { property: { id: property.id }, url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200', category: 'exterior', description: 'Front elevation, main house' },
+      { property: { id: property.id }, url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200', category: 'interior', description: 'Living room' },
+      { property: { id: property.id }, url: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=1200', category: 'exterior', description: 'Entrance gate and paved yard' },
+      { property: { id: property.id }, url: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=1200', category: 'external_works', description: 'Boundary wall and water tank' },
+    ]);
+
+    // Inspection — completed, with the real boundary/encroachment observation from
+    // the reference report (a perfect example of "professional judgement no algorithm produces")
+    const inspectionRepo = AppDataSource.getRepository('valuation_inspections');
+    const inspectionNoteRepo = AppDataSource.getRepository('valuation_inspection_notes');
+    const inspection = await inspectionRepo.save({
+      request: { id: request.id }, technician: { id: technician.id },
+      status: 'submitted', inspectionDate: '2026-08-27',
+    });
+    await inspectionNoteRepo.save([
+      { inspection: { id: inspection.id }, field: 'Boundary', observation: 'Some annex structures fall under the boundary of the neighboring plot; part of the main house sits within the shared UPI. Recommend the owner engage a certified land surveyor to rectify boundaries before loan disbursement.', authorId: technician.id },
+      { inspection: { id: inspection.id }, field: 'Utilities', observation: 'WASAC water and EUCL power both confirmed connected and functional on site visit.', authorId: technician.id },
+      { inspection: { id: inspection.id }, field: 'General condition', observation: 'Main house well maintained; annex structures show fair condition, unlined ceilings and cement-screed floors throughout.', authorId: technician.id },
+    ]);
+
+    console.log(`✅ Seeded sample valuation request ${sampleReference} (ready for engine selection → Cost Approach), plus images and a completed inspection`);
   } else {
     console.log(`ℹ️  Sample valuation request already seeded or valuer/technician missing`);
   }

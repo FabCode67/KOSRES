@@ -62,6 +62,18 @@ export class ValuationPropertiesController {
     return this.service.addExternalWork(id, body);
   }
 
+  @Post(':id/services')
+  addService(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+    requireRoles(req, ['admin', 'valuer', 'technician']);
+    return this.service.addService(id, body);
+  }
+
+  @Post(':id/amenities')
+  addAmenity(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+    requireRoles(req, ['admin', 'valuer', 'technician']);
+    return this.service.addAmenity(id, body);
+  }
+
   @Post(':id/images')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } }))
   async uploadImage(

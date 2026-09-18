@@ -9,12 +9,12 @@ import {
   MapPin, Building2, Hammer, ChevronRight, FileText, Edit3, ShieldCheck, ArrowRight, X,
 } from "lucide-react"
 import {
-  getRequest, getPropertyByRequest, createProperty, updatePropertyLand,
+  getRequest, getPropertyByRequest, createProperty, updatePropertyLocation, updatePropertyLand,
   addBuilding, addExternalWork, getRateTables, getCalculationRules,
   getActiveEngineVersion, selectEngine, runCostApproach, transitionRequest,
   approveRequest, addAdjustment, generateReport, getReport,
   getComparables, getSelectionsForRequest, addComparableSelection, updateComparableSelection, removeComparableSelection, runSalesComparison,
-  runIncomeApproach, getAssignableUsers, createInspection, runAvs,
+  runIncomeApproach, getAssignableUsers, createInspection, runAvs, addService, addAmenity,
 } from "@/lib/valuation-api"
 import type {
   ValuationRequestDetail, ValuationPropertyDetail, RateTable, CalculationRule, CostApproachBreakdown, RequestStatus, ValuationResult, ValuationReport,
@@ -31,6 +31,65 @@ function fmt(n: number | string) {
 
 function normalizeKey(name: string) {
   return name.trim().toLowerCase().replace(/\s+/g, "_")
+}
+
+// ── Reference option lists (Rwanda-specific where relevant) ─────────────────
+const PROVINCES = ["Kigali City", "Southern Province", "Northern Province", "Eastern Province", "Western Province"]
+const DISTRICTS = [
+  "Gasabo", "Kicukiro", "Nyarugenge",
+  "Huye", "Gisagara", "Kamonyi", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango",
+  "Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo",
+  "Bugesera", "Gatsibo", "Kayonza", "Kirehe", "Ngoma", "Nyagatare", "Rwamagana",
+  "Karongi", "Ngororero", "Nyabihu", "Nyamasheke", "Rubavu", "Rusizi", "Rutsiro",
+]
+const ACCESSIBILITY_OPTIONS = ["Footway", "Murram", "Cobble", "Tarmac"]
+const ZONING_OPTIONS = [
+  "A1-Agriculture zone", "R1-Residential zone", "R2-Residential zone", "R3-Residential zone",
+  "C1-Commercial zone", "C2-Commercial zone", "I1-Industrial zone", "MU-Mixed use zone",
+  "PF-Public facility zone", "GR-Green/recreation zone", "T1-Road reserve",
+]
+const TOPOGRAPHY_OPTIONS = ["Flat", "Gently sloping", "Moderately sloping", "Steeply sloping", "Undulating", "Hilly"]
+const SERVICE_TYPE_OPTIONS = ["water", "electricity", "drainage", "internet", "gas", "sewage"]
+const SUBTYPES_BY_CATEGORY: Record<string, string[]> = {
+  residential: ["House", "Apartment", "Villa", "Bungalow", "Townhouse", "Duplex"],
+  commercial: ["Office", "Retail / Shop", "Commercial Building", "Warehouse", "Hotel"],
+  industrial: ["Factory", "Warehouse", "Industrial Plot"],
+  agricultural: ["Farm", "Plantation", "Agricultural Land"],
+  land: ["Residential Plot", "Commercial Plot", "Agricultural Plot"],
+  special_purpose: ["School", "Hospital", "Church", "Government Building"],
+}
+
+/**
+ * A dropdown of common values with a final "Other…" option that reveals a
+ * free-text input — keeps data entry fast for the common cases while never
+ * blocking a genuinely unusual value (matches the "configurable, not a fixed
+ * enum" principle for property subtypes/zoning/accessibility categories).
+ */
+function SelectOrOther({ value, onChange, options, placeholder, className }: { value: string; onChange: (v: string) => void; options: string[]; placeholder?: string; className: string }) {
+  const isCustom = value !== "" && !options.includes(value)
+  const [customMode, setCustomMode] = useState(isCustom)
+
+  if (customMode) {
+    return (
+      <div className="flex gap-1">
+        <input value={value} onChange={(e) => onChange(e.target.value)} className={className} placeholder={placeholder} autoFocus />
+        <button type="button" onClick={() => { setCustomMode(false); onChange("") }} title="Back to list" className="flex-none rounded-lg border border-border px-2 text-xs text-muted-foreground hover:bg-muted">
+          <X size={12} />
+        </button>
+      </div>
+    )
+  }
+  return (
+    <select
+      value={options.includes(value) ? value : ""}
+      onChange={(e) => { if (e.target.value === "__other__") { setCustomMode(true); onChange("") } else onChange(e.target.value) }}
+      className={className}
+    >
+      <option value="">—</option>
+      {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      <option value="__other__">Other (type your own)…</option>
+    </select>
+  )
 }
 
 // The single "happy path" forward status from each status — mirrors the
@@ -114,9 +173,14 @@ export default function ValuationRequestDetailPage() {
   }
   if (!request) return <p className="text-sm text-muted-foreground">Request not found.</p>
 
-  const latestCalc = request.calculations?.[request.calculations.length - 1]
-  const latestBreakdown = latestCalc?.outputsSnapshot
   const engineCode = request.engineVersion?.engine?.code
+  // Scope to the currently active engine — request.calculations/results accumulate
+  // history from every engine ever tried on this request, so picking the globally
+  // latest one could show a different engine's numbers than the one selected now.
+  const engineCalculations = request.calculations.filter((c) => c.engineVersion?.engine?.code === engineCode)
+  const latestCalc = engineCalculations[engineCalculations.length - 1]
+  const latestBreakdown = latestCalc?.outputsSnapshot
+  const currentResults = latestCalc ? request.results.filter((r) => r.calculation?.id === latestCalc.id) : []
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -146,9 +210,11 @@ export default function ValuationRequestDetailPage() {
             <PropertyIntakeCard token={token!} requestId={requestId} onCreated={load} />
           ) : (
             <>
+              <LocationCard token={token!} property={property} onSaved={load} />
               <LandCard token={token!} property={property} suggestedRate={suggestedLandRate} onSaved={load} />
               <BuildingsCard token={token!} property={property} presets={buildingRateOptions} onSaved={load} />
               <ExternalWorksCard token={token!} property={property} presets={externalRateOptions} onSaved={load} />
+              <ServicesAmenitiesCard token={token!} property={property} onSaved={load} />
             </>
           )}
         </div>
@@ -166,6 +232,10 @@ export default function ValuationRequestDetailPage() {
 
             {property && request.status === "valuer_review" && (
               <EngineSelectionCard token={token!} requestId={request.id} onSelected={load} />
+            )}
+
+            {property && engineCode && request.status !== "valuer_review" && !(["approved", "certified", "completed"].includes(request.status)) && (
+              <EngineSwitchCard token={token!} requestId={request.id} currentCode={engineCode} onSwitched={load} />
             )}
 
             {property && ["engine_selected", "analysis_in_progress", "valuer_final_review", "draft_report", "approved", "certified", "completed"].includes(request.status) && engineCode === "COST_APPROACH" && (
@@ -193,16 +263,16 @@ export default function ValuationRequestDetailPage() {
             )}
 
             {latestBreakdown && engineCode === "COST_APPROACH" && (
-              <ValuationLedger token={token!} breakdown={latestBreakdown} results={request.results} onChanged={load} />
+              <ValuationLedger token={token!} breakdown={latestBreakdown} results={currentResults} onChanged={load} />
             )}
             {latestBreakdown && engineCode === "SALES_COMPARISON" && (
-              <SalesComparisonLedger breakdown={latestBreakdown as any} results={request.results} />
+              <SalesComparisonLedger breakdown={latestBreakdown as any} results={currentResults} />
             )}
             {latestBreakdown && engineCode === "INCOME_APPROACH" && (
-              <IncomeApproachLedger breakdown={latestBreakdown as any} results={request.results} />
+              <IncomeApproachLedger breakdown={latestBreakdown as any} results={currentResults} />
             )}
             {latestBreakdown && engineCode === "AVS" && (
-              <AvsLedger token={token!} breakdown={latestBreakdown as any} results={request.results} onChanged={load} />
+              <AvsLedger token={token!} breakdown={latestBreakdown as any} results={currentResults} onChanged={load} />
             )}
 
             {(request.status === "valuer_final_review" || report) && (
@@ -425,6 +495,57 @@ function EngineSelectionCard({ token, requestId, onSelected }: { token: string; 
   )
 }
 
+// ═══ Switch methodology ─ try a different engine without losing prior results ═══
+function EngineSwitchCard({ token, requestId, currentCode, onSwitched }: { token: string; requestId: string; currentCode: string; onSwitched: () => void }) {
+  const ENGINES: { code: "COST_APPROACH" | "SALES_COMPARISON" | "INCOME_APPROACH" | "AVS"; label: string }[] = [
+    { code: "COST_APPROACH", label: "Cost Approach" },
+    { code: "SALES_COMPARISON", label: "Sales Comparison" },
+    { code: "INCOME_APPROACH", label: "Income Approach" },
+    { code: "AVS", label: "Automated Valuation (AVS)" },
+  ]
+  const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState("")
+
+  const handleSwitch = async (code: typeof ENGINES[number]["code"]) => {
+    setBusy(code); setError("")
+    try {
+      const engineVersion = await getActiveEngineVersion(token, code)
+      await selectEngine(token, requestId, engineVersion.id)
+      setOpen(false)
+      onSwitched()
+    } catch (e: any) {
+      setError(e.message || "Failed to switch methodology")
+    }
+    setBusy(null)
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2.5 text-xs font-semibold text-muted-foreground hover:border-[oklch(0.42_0.19_25)] hover:text-[oklch(0.42_0.19_25)]">
+        <ChevronRight size={12} className="rotate-90" /> Try a different methodology
+      </button>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-white p-4">
+      <p className="mb-2 text-xs font-semibold text-slate-700">Switch valuation methodology</p>
+      <p className="mb-3 text-[11px] text-muted-foreground">Past results from other methods aren't lost — you can switch back anytime.</p>
+      {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
+      <div className="space-y-1.5">
+        {ENGINES.filter((e) => e.code !== currentCode).map((e) => (
+          <button key={e.code} onClick={() => handleSwitch(e.code)} disabled={!!busy} className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:border-[oklch(0.42_0.19_25)] hover:bg-muted/40 disabled:opacity-50">
+            {e.label}
+            {busy === e.code ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
+          </button>
+        ))}
+      </div>
+      <button onClick={() => setOpen(false)} className="mt-2 text-[11px] text-muted-foreground hover:underline">Cancel</button>
+    </div>
+  )
+}
+
 // ═══ Approval ─ records a formal sign-off (name, license) and certifies ═══
 function ApproveCard({ token, requestId, onApproved }: { token: string; requestId: string; onApproved: () => void }) {
   const [signedName, setSignedName] = useState("")
@@ -539,7 +660,7 @@ function PropertyIntakeCard({ token, requestId, onCreated }: { token: string; re
         </div>
         <div>
           <label className={lbl}>Subtype</label>
-          <input value={subtype} onChange={(e) => setSubtype(e.target.value)} className={inp} placeholder="House, Apartment, Office…" />
+          <SelectOrOther value={subtype} onChange={setSubtype} options={SUBTYPES_BY_CATEGORY[category] ?? []} placeholder="Type a subtype…" className={inp} />
         </div>
         <div>
           <label className={lbl}>Tenure</label>
@@ -560,6 +681,63 @@ function PropertyIntakeCard({ token, requestId, onCreated }: { token: string; re
 // ═══════════════════════════════════════════════════════════════════════
 // Land
 // ═══════════════════════════════════════════════════════════════════════
+// ═══ Location ─ district/sector drive AVS matching and land-rate suggestions ═══
+function LocationCard({ token, property, onSaved }: { token: string; property: ValuationPropertyDetail; onSaved: () => void }) {
+  const [province, setProvince] = useState(property.location?.province ?? "")
+  const [district, setDistrict] = useState(property.location?.district ?? "")
+  const [sector, setSector] = useState(property.location?.sector ?? "")
+  const [cell, setCell] = useState(property.location?.cell ?? "")
+  const [village, setVillage] = useState(property.location?.village ?? "")
+  const [accessibility, setAccessibility] = useState(property.location?.accessibility ?? "")
+  const [neighborhoodQuality, setNeighborhoodQuality] = useState(property.location?.neighborhoodQuality ?? "")
+  const [distanceToCbdKm, setDistanceToCbdKm] = useState(property.location?.distanceToCbdKm?.toString() ?? "")
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleSave = async () => {
+    setSaving(true); setError("")
+    try {
+      await updatePropertyLocation(token, property.id, {
+        province: province || undefined, district: district || undefined, sector: sector || undefined,
+        cell: cell || undefined, village: village || undefined, accessibility: accessibility || undefined,
+        neighborhoodQuality: neighborhoodQuality || undefined,
+        distanceToCbdKm: distanceToCbdKm ? Number(distanceToCbdKm) : undefined,
+      })
+      onSaved()
+    } catch (e: any) {
+      setError(e?.message || "Failed to save location")
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-white p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <MapPin size={16} className="text-[oklch(0.42_0.19_25)]" />
+        <h2 className="font-heading text-lg font-bold text-slate-800">Location</h2>
+      </div>
+      <p className="mb-4 text-xs text-muted-foreground">District especially matters — it drives comparable matching (Sales Comparison, AVS) and land-rate suggestions.</p>
+      <div className="grid grid-cols-3 gap-4">
+        <div><label className={lbl}>Province</label><SelectOrOther value={province} onChange={setProvince} options={PROVINCES} placeholder="Type province…" className={inp} /></div>
+        <div><label className={lbl}>District</label><SelectOrOther value={district} onChange={setDistrict} options={DISTRICTS} placeholder="Type district…" className={inp} /></div>
+        <div><label className={lbl}>Sector</label><input value={sector} onChange={(e) => setSector(e.target.value)} className={inp} placeholder="Rugarika" /></div>
+        <div><label className={lbl}>Cell</label><input value={cell} onChange={(e) => setCell(e.target.value)} className={inp} placeholder="Sheli" /></div>
+        <div><label className={lbl}>Village</label><input value={village} onChange={(e) => setVillage(e.target.value)} className={inp} placeholder="Kagangayire" /></div>
+        <div>
+          <label className={lbl}>Accessibility</label>
+          <SelectOrOther value={accessibility} onChange={setAccessibility} options={ACCESSIBILITY_OPTIONS} placeholder="Type access type…" className={inp} />
+        </div>
+        <div><label className={lbl}>Distance to CBD (km)</label><input type="number" value={distanceToCbdKm} onChange={(e) => setDistanceToCbdKm(e.target.value)} className={inp} placeholder="4.2" /></div>
+        <div className="col-span-2"><label className={lbl}>Neighborhood quality</label><input value={neighborhoodQuality} onChange={(e) => setNeighborhoodQuality(e.target.value)} className={inp} placeholder="Safe, good reputation" /></div>
+      </div>
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      <button onClick={handleSave} disabled={saving} className="mt-4 text-sm font-semibold text-[oklch(0.42_0.19_25)] hover:underline">
+        {saving ? "Saving…" : "Save location"}
+      </button>
+    </div>
+  )
+}
+
 function LandCard({ token, property, suggestedRate, onSaved }: { token: string; property: ValuationPropertyDetail; suggestedRate?: number; onSaved: () => void }) {
   const [plotSize, setPlotSize] = useState(property.land?.plotSizeSqm?.toString() ?? "")
   const [zoning, setZoning] = useState(property.land?.zoning ?? "")
@@ -592,11 +770,11 @@ function LandCard({ token, property, suggestedRate, onSaved }: { token: string; 
         </div>
         <div>
           <label className={lbl}>Zoning</label>
-          <input value={zoning} onChange={(e) => setZoning(e.target.value)} className={inp} placeholder="A1-Agriculture zone" />
+          <SelectOrOther value={zoning} onChange={setZoning} options={ZONING_OPTIONS} placeholder="Type zoning…" className={inp} />
         </div>
         <div>
           <label className={lbl}>Topography</label>
-          <input value={topography} onChange={(e) => setTopography(e.target.value)} className={inp} placeholder="Gently sloping" />
+          <SelectOrOther value={topography} onChange={setTopography} options={TOPOGRAPHY_OPTIONS} placeholder="Type topography…" className={inp} />
         </div>
       </div>
       {suggestedRate && <p className="mt-3 text-xs text-muted-foreground">Suggested land rate on file: <span className="font-mono">{fmt(suggestedRate)}/sqm</span> — adopted in the calculation panel.</p>}
@@ -733,6 +911,98 @@ function ExternalWorksCard({ token, property, presets, onSaved }: { token: strin
 // ═══════════════════════════════════════════════════════════════════════
 // Calculation trigger panel — assigns rates to every line, then runs it
 // ═══════════════════════════════════════════════════════════════════════
+// ═══ Services & Amenities ═══
+function ServicesAmenitiesCard({ token, property, onSaved }: { token: string; property: ValuationPropertyDetail; onSaved: () => void }) {
+  const [serviceType, setServiceType] = useState("water")
+  const [serviceStatus, setServiceStatus] = useState("connected")
+  const [serviceProvider, setServiceProvider] = useState("")
+  const [addingService, setAddingService] = useState(false)
+
+  const [amenityName, setAmenityName] = useState("")
+  const [amenityDistance, setAmenityDistance] = useState("")
+  const [addingAmenity, setAddingAmenity] = useState(false)
+
+  const [error, setError] = useState("")
+
+  const handleAddService = async () => {
+    setAddingService(true); setError("")
+    try {
+      await addService(token, property.id, { type: serviceType, status: serviceStatus, provider: serviceProvider || undefined })
+      setServiceProvider("")
+      onSaved()
+    } catch (e: any) {
+      setError(e?.message || "Failed to add service")
+    }
+    setAddingService(false)
+  }
+
+  const handleAddAmenity = async () => {
+    if (!amenityName) return
+    setAddingAmenity(true); setError("")
+    try {
+      await addAmenity(token, property.id, { name: amenityName, distanceKm: amenityDistance ? Number(amenityDistance) : undefined })
+      setAmenityName(""); setAmenityDistance("")
+      onSaved()
+    } catch (e: any) {
+      setError(e?.message || "Failed to add amenity")
+    }
+    setAddingAmenity(false)
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-white p-6">
+      <h2 className="mb-4 font-heading text-lg font-bold text-slate-800">Services & Amenities</h2>
+      {error && <p className="mb-3 text-xs text-red-600">{error}</p>}
+
+      {/* Services */}
+      <p className={lbl}>Services</p>
+      {property.services && property.services.length > 0 && (
+        <div className="mb-3 divide-y divide-border rounded-lg border border-border">
+          {property.services.map((s) => (
+            <div key={s.id} className="flex items-center justify-between px-4 py-2 text-sm">
+              <span className="font-medium capitalize text-slate-700">{s.type}{s.provider ? ` — ${s.provider}` : ""}</span>
+              <span className={`text-xs font-semibold ${s.status === "connected" ? "text-emerald-600" : "text-slate-400"}`}>
+                {s.status.replace("_", " ")}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="mb-4 grid grid-cols-4 gap-2">
+        <SelectOrOther value={serviceType} onChange={setServiceType} options={SERVICE_TYPE_OPTIONS} placeholder="Type service…" className={inp} />
+        <select value={serviceStatus} onChange={(e) => setServiceStatus(e.target.value)} className={inp}>
+          <option value="connected">Connected</option>
+          <option value="not_connected">Not connected</option>
+        </select>
+        <input value={serviceProvider} onChange={(e) => setServiceProvider(e.target.value)} className={inp} placeholder="Provider (optional)" />
+        <button onClick={handleAddService} disabled={addingService} className="flex items-center justify-center gap-1 rounded-lg bg-slate-800 text-xs font-semibold text-white hover:bg-slate-900 disabled:opacity-40">
+          <Plus size={13} /> Add
+        </button>
+      </div>
+
+      {/* Amenities */}
+      <p className={lbl}>Nearby amenities</p>
+      {property.amenities && property.amenities.length > 0 && (
+        <div className="mb-3 divide-y divide-border rounded-lg border border-border">
+          {property.amenities.map((a) => (
+            <div key={a.id} className="flex items-center justify-between px-4 py-2 text-sm">
+              <span className="text-slate-700">{a.name}</span>
+              {a.distanceKm != null && <span className="font-mono text-xs text-muted-foreground">{a.distanceKm} km</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="grid grid-cols-[2fr_1fr_auto] gap-2">
+        <input value={amenityName} onChange={(e) => setAmenityName(e.target.value)} className={inp} placeholder="School, market, hospital…" />
+        <input type="number" value={amenityDistance} onChange={(e) => setAmenityDistance(e.target.value)} className={inp} placeholder="Distance km" />
+        <button onClick={handleAddAmenity} disabled={addingAmenity || !amenityName} className="flex items-center justify-center gap-1 rounded-lg bg-slate-800 px-3 text-xs font-semibold text-white hover:bg-slate-900 disabled:opacity-40">
+          <Plus size={13} /> Add
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function CalculationPanel({
   token, request, property, buildingRateOptions, externalRateOptions, rules, onCalculated,
 }: {

@@ -6,6 +6,7 @@ import { ValuationPropertyLocation, ValuationPropertyLand } from '../entities/va
 import { ValuationPropertyBuilding } from '../entities/valuation-property-building.entity';
 import { ValuationExternalWork } from '../entities/valuation-external-work.entity';
 import { ValuationPropertyImage, ValuationPropertyDocument } from '../entities/valuation-property-media.entity';
+import { ValuationPropertyService, ValuationPropertyAmenity } from '../entities/valuation-property-service.entity';
 
 const RELATIONS = ['location', 'land', 'buildings', 'externalWorks', 'services', 'amenities', 'images', 'documents'];
 
@@ -19,6 +20,8 @@ export class ValuationPropertiesService {
     @InjectRepository(ValuationExternalWork) private workRepo: Repository<ValuationExternalWork>,
     @InjectRepository(ValuationPropertyImage) private imageRepo: Repository<ValuationPropertyImage>,
     @InjectRepository(ValuationPropertyDocument) private documentRepo: Repository<ValuationPropertyDocument>,
+    @InjectRepository(ValuationPropertyService) private serviceRepo: Repository<ValuationPropertyService>,
+    @InjectRepository(ValuationPropertyAmenity) private amenityRepo: Repository<ValuationPropertyAmenity>,
   ) {}
 
   findByRequest(requestId: string) {
@@ -74,5 +77,13 @@ export class ValuationPropertiesService {
 
   addDocument(propertyId: string, type: string, url: string, uploadedById?: string) {
     return this.documentRepo.save(this.documentRepo.create({ property: { id: propertyId } as any, type, url, uploadedById }));
+  }
+
+  addService(propertyId: string, data: Partial<ValuationPropertyService>) {
+    return this.serviceRepo.save(this.serviceRepo.create({ ...data, property: { id: propertyId } as any }));
+  }
+
+  addAmenity(propertyId: string, data: Partial<ValuationPropertyAmenity>) {
+    return this.amenityRepo.save(this.amenityRepo.create({ ...data, property: { id: propertyId } as any }));
   }
 }

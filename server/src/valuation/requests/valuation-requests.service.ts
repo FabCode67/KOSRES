@@ -79,7 +79,8 @@ export class ValuationRequestsService {
       relations: [
         'property', 'property.location', 'property.land', 'property.buildings', 'property.externalWorks',
         'assignedValuer', 'assignedTechnician', 'customer',
-        'calculations', 'results', 'workflowTransitions',
+        'calculations', 'calculations.engineVersion', 'calculations.engineVersion.engine',
+        'results', 'results.calculation', 'workflowTransitions',
         'engineVersion', 'engineVersion.engine',
         'inspections', 'inspections.technician', 'inspections.notes',
       ],
@@ -115,9 +116,24 @@ export class ValuationRequestsService {
     );
   }
 
+  /**
+   * Sets which engine is currently "active" for this request. The FIRST
+   * selection (from VALUER_REVIEW) also advances the workflow, since that's
+   * the genuine "methodology chosen" milestone. Selecting again later —
+   * e.g. a valuer wants to compare Cost Approach against Sales Comparison —
+   * just switches which engine's panel/ledger is active without touching
+   * status or discarding any previous engine's calculation history: every
+   * Calculation row keeps its own engineVersion reference regardless of
+   * which one the request currently points to.
+   */
   async selectEngine(id: string, engineVersionId: string, actorId: string) {
+    const request = await this.repo.findOneOrFail({ where: { id } });
     await this.repo.update(id, { engineVersion: { id: engineVersionId } as any });
-    return this.transition(id, RequestStatus.ENGINE_SELECTED, actorId, 'Engine selected by valuer');
+    if (request.status === RequestStatus.VALUER_REVIEW) {
+      return this.transition(id, RequestStatus.ENGINE_SELECTED, actorId, 'Engine selected by valuer');
+    }
+    await this.logTransition(id, request.status, request.status, actorId, 'Switched valuation methodology');
+    return this.findOne(id);
   }
 
   /**

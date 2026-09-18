@@ -5,6 +5,7 @@ import { ValuationPropertyLocation, ValuationPropertyLand } from '../entities/va
 import { ValuationPropertyBuilding } from '../entities/valuation-property-building.entity';
 import { ValuationExternalWork } from '../entities/valuation-external-work.entity';
 import { ValuationPropertyImage, ValuationPropertyDocument } from '../entities/valuation-property-media.entity';
+import { ValuationPropertyService, ValuationPropertyAmenity } from '../entities/valuation-property-service.entity';
 import { ValuationPropertiesService } from './valuation-properties.service';
 import { ValuationPropertiesController } from './valuation-properties.controller';
 import { UploadModule } from '../../upload/upload.module';
@@ -15,6 +16,7 @@ import { UploadModule } from '../../upload/upload.module';
       ValuationProperty, ValuationPropertyLocation, ValuationPropertyLand,
       ValuationPropertyBuilding, ValuationExternalWork,
       ValuationPropertyImage, ValuationPropertyDocument,
+      ValuationPropertyService, ValuationPropertyAmenity,
     ]),
     UploadModule,
   ],
