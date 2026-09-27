@@ -1,0 +1,3 @@
+
+# Raw cadastral survey exports -- large (40-70MB each), never commit; see server/data/cadastral-raw/README.md
+server/data/cadastral-raw/*.xlsx

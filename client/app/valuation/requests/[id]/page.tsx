@@ -6,7 +6,7 @@ import { useParams } from "next/navigation"
 import Link from "next/link"
 import {
   ArrowLeft, Loader2, Plus, Trash2, Calculator, Check, AlertCircle,
-  MapPin, Building2, Hammer, ChevronRight, FileText, Edit3, ShieldCheck, ArrowRight, X,
+  MapPin, Building2, Hammer, ChevronRight, FileText, Edit3, ShieldCheck, ArrowRight, X, Search,
 } from "lucide-react"
 import {
   getRequest, getPropertyByRequest, createProperty, updatePropertyLocation, updatePropertyLand,
@@ -14,11 +14,11 @@ import {
   getActiveEngineVersion, selectEngine, runCostApproach, transitionRequest,
   approveRequest, addAdjustment, generateReport, getReport,
   getComparables, getSelectionsForRequest, addComparableSelection, updateComparableSelection, removeComparableSelection, runSalesComparison,
-  runIncomeApproach, getAssignableUsers, createInspection, runAvs, addService, addAmenity,
+  runIncomeApproach, getAssignableUsers, createInspection, runAvs, addService, addAmenity, lookupCadastralByUpi,
 } from "@/lib/valuation-api"
 import type {
   ValuationRequestDetail, ValuationPropertyDetail, RateTable, CalculationRule, CostApproachBreakdown, RequestStatus, ValuationResult, ValuationReport,
-  ComparableProperty, ComparableSelectionRow,
+  ComparableProperty, ComparableSelectionRow, CadastralLookupResult,
 } from "@/lib/valuation-api"
 
 const inp = "w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[oklch(0.42_0.19_25)/25]"
@@ -213,8 +213,9 @@ export default function ValuationRequestDetailPage() {
             <PropertyIntakeCard token={token!} requestId={requestId} onCreated={load} />
           ) : (
             <>
-              <LocationCard token={token!} property={property} onSaved={load} />
-              <LandCard token={token!} property={property} suggestedRate={suggestedLandRate} onSaved={load} />
+              <CadastralLookupCard token={token!} property={property} onApplied={load} />
+              <LocationCard key={JSON.stringify(property.location)} token={token!} property={property} onSaved={load} />
+              <LandCard key={JSON.stringify(property.land)} token={token!} property={property} suggestedRate={suggestedLandRate} onSaved={load} />
               <BuildingsCard token={token!} property={property} presets={buildingRateOptions} onSaved={load} />
               <ExternalWorksCard token={token!} property={property} presets={externalRateOptions} onSaved={load} />
               <ServicesAmenitiesCard token={token!} property={property} onSaved={load} />
@@ -677,6 +678,105 @@ function PropertyIntakeCard({ token, requestId, onCreated }: { token: string; re
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Create property record
       </button>
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Cadastral UPI lookup — exact survey data (plot area + coordinates) for
+// UPIs we've imported (see server/src/database/import-cadastral.ts).
+// Deliberately a SUGGESTION, not an auto-lock: it writes into Location/Land
+// via the normal update calls, and the forms below stay fully editable —
+// same pattern as rate-table suggestions and AVS results elsewhere in this
+// platform. A miss just means "not imported yet" or a UPI typo, not that
+// the property can't be valued; the manual fields below always work.
+function CadastralLookupCard({ token, property, onApplied }: { token: string; property: ValuationPropertyDetail; onApplied: () => void }) {
+  const [loading, setLoading] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [result, setResult] = useState<CadastralLookupResult | null>(null)
+  const [error, setError] = useState("")
+  const [checked, setChecked] = useState(false)
+
+  const upi = property.upi?.trim()
+
+  const handleLookup = async () => {
+    if (!upi) return
+    setLoading(true); setError(""); setResult(null); setChecked(false)
+    try {
+      const r = await lookupCadastralByUpi(token, upi)
+      setResult(r)
+    } catch (e: any) {
+      setError(e?.message || "No cadastral record found for this UPI.")
+    }
+    setChecked(true)
+    setLoading(false)
+  }
+
+  const handleApply = async () => {
+    if (!result) return
+    setApplying(true)
+    try {
+      await updatePropertyLocation(token, property.id, {
+        province: result.province || undefined,
+        district: result.district || undefined,
+        sector: result.sector || undefined,
+        cell: result.cell || undefined,
+        village: result.village || undefined,
+        distanceToCbdKm: result.distanceToCbdKm ?? undefined,
+        latitude: result.latitude ?? undefined,
+        longitude: result.longitude ?? undefined,
+      })
+      if (result.plotAreaSqm != null) {
+        await updatePropertyLand(token, property.id, { plotSizeSqm: result.plotAreaSqm })
+      }
+      onApplied()
+    } catch (e: any) {
+      setError(e?.message || "Failed to apply looked-up values")
+    }
+    setApplying(false)
+  }
+
+  if (!upi) return null
+
+  return (
+    <div className="rounded-xl border border-dashed border-[oklch(0.42_0.19_25)/40] bg-[oklch(0.42_0.19_25)/4] p-5">
+      <div className="mb-2 flex items-center gap-2">
+        <Search size={15} className="text-[oklch(0.42_0.19_25)]" />
+        <h3 className="font-heading text-sm font-bold text-slate-800">Cadastral survey lookup</h3>
+      </div>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Check UPI <span className="font-mono font-semibold">{upi}</span> against imported survey records for exact plot area, coordinates, and administrative location — fills in the fields below, which you can still edit or override afterward.
+      </p>
+
+      {!checked && (
+        <button onClick={handleLookup} disabled={loading} className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-900 disabled:opacity-50">
+          {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />} Look up UPI
+        </button>
+      )}
+
+      {checked && error && (
+        <div>
+          <p className="mb-2 text-xs text-amber-700">{error}</p>
+          <button onClick={handleLookup} disabled={loading} className="text-xs font-semibold text-[oklch(0.42_0.19_25)] hover:underline">Try again</button>
+        </div>
+      )}
+
+      {checked && result && (
+        <div className="rounded-lg border border-border bg-white p-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-3">
+            <div><span className="text-muted-foreground">District</span><br /><span className="font-semibold">{result.district || "—"}</span></div>
+            <div><span className="text-muted-foreground">Sector</span><br /><span className="font-semibold">{result.sector || "—"}</span></div>
+            <div><span className="text-muted-foreground">Cell</span><br /><span className="font-semibold">{result.cell || "—"}</span></div>
+            <div><span className="text-muted-foreground">Plot area</span><br /><span className="font-semibold">{result.plotAreaSqm != null ? `${result.plotAreaSqm} sqm` : "—"}</span></div>
+            <div><span className="text-muted-foreground">Distance to CBD</span><br /><span className="font-semibold">{result.distanceToCbdKm != null ? `${result.distanceToCbdKm} km` : "—"}</span></div>
+            <div><span className="text-muted-foreground">Coordinates</span><br /><span className="font-mono">{result.latitude?.toFixed(5)}, {result.longitude?.toFixed(5)}</span></div>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">{result.distanceNote} Source: {result.source}.</p>
+          <button onClick={handleApply} disabled={applying} className="mt-3 flex items-center gap-1.5 rounded-lg bg-[oklch(0.42_0.19_25)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[oklch(0.36_0.18_25)] disabled:opacity-50">
+            {applying ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Apply to Location & Land
+          </button>
+        </div>
+      )}
     </div>
   )
 }

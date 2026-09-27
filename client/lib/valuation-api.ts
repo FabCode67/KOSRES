@@ -92,6 +92,7 @@ export interface ValuationPropertyDetail {
   location?: {
     province?: string; district?: string; sector?: string; cell?: string; village?: string
     accessibility?: string; neighborhoodQuality?: string; distanceToCbdKm?: number
+    latitude?: number; longitude?: number
   }
   land?: { plotSizeSqm?: number; zoning?: string; topography?: string }
   buildings: { id: string; name: string; areaSqm: number; constructionYear?: number; condition?: string }[]
@@ -278,6 +279,44 @@ export function getPropertyByRequest(token: string, requestId: string) {
 export function createProperty(token: string, requestId: string, data: Partial<ValuationPropertyDetail>) {
   return jsonFetch<ValuationPropertyDetail>(`/valuation/properties/by-request/${requestId}`, token, { method: "POST", body: JSON.stringify(data) })
 }
+export type CadastralLookupResult = {
+  upi: string
+  province: string | null
+  district: string | null
+  sector: string | null
+  cell: string | null
+  village: string | null
+  plotAreaSqm: number | null
+  latitude: number | null
+  longitude: number | null
+  distanceToCbdKm: number | null
+  cbdReference: { lat: number; lng: number }
+  distanceNote: string
+  source: string | null
+}
+export function lookupCadastralByUpi(token: string, upi: string) {
+  return jsonFetch<CadastralLookupResult>(`/valuation/cadastral/lookup?upi=${encodeURIComponent(upi)}`, token)
+}
+export function publicLookupCadastralByUpi(upi: string) {
+  return jsonFetch<CadastralLookupResult>(`/valuation/cadastral/public-lookup?upi=${encodeURIComponent(upi)}`)
+}
+export function getCadastralCoveredDistricts(token: string) {
+  return jsonFetch<string[]>(`/valuation/cadastral/districts`, token)
+}
+export type CadastralDrivingDistanceResult = {
+  upi: string
+  drivingDistanceKm: number | null
+  drivingDurationMin: number | null
+  available: boolean
+  note?: string
+}
+export function drivingDistanceCadastralByUpi(token: string, upi: string) {
+  return jsonFetch<CadastralDrivingDistanceResult>(`/valuation/cadastral/driving-distance?upi=${encodeURIComponent(upi)}`, token)
+}
+export function publicDrivingDistanceCadastralByUpi(upi: string) {
+  return jsonFetch<CadastralDrivingDistanceResult>(`/valuation/cadastral/public-driving-distance?upi=${encodeURIComponent(upi)}`)
+}
+
 export function updatePropertyLocation(token: string, propertyId: string, data: any) {
   return jsonFetch(`/valuation/properties/${propertyId}/location`, token, { method: "PATCH", body: JSON.stringify(data) })
 }
