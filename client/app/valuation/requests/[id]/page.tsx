@@ -58,6 +58,9 @@ const SUBTYPES_BY_CATEGORY: Record<string, string[]> = {
   land: ["Residential Plot", "Commercial Plot", "Agricultural Plot"],
   special_purpose: ["School", "Hospital", "Church", "Government Building"],
 }
+const BUILDING_NAME_OPTIONS = ["Main house", "Annex I", "Annex II", "Boys' quarters", "Garage", "Store", "Guard house", "Detached kitchen"]
+const EXTERNAL_WORK_OPTIONS = ["Site leveling", "Retaining wall", "Perimeter fence", "Entrance gate", "Parking shed", "Paved driveway/compound", "Water tank", "Septic tank / foul drainage", "Guard house", "Landscaping"]
+const AMENITY_OPTIONS = ["School", "Hospital / Health center", "Market", "Church", "Mosque", "Bus park / Taxi park", "Main road / CBD access", "Police station", "Bank", "Fuel station"]
 
 /**
  * A dropdown of common values with a final "Other…" option that reveals a
@@ -797,6 +800,11 @@ function BuildingsCard({ token, property, presets, onSaved }: { token: string; p
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState("")
 
+  const nameOptions = useMemo(
+    () => Array.from(new Set([...BUILDING_NAME_OPTIONS, ...presets.map((p) => p.key.replace(/_/g, " "))])),
+    [presets]
+  )
+
   const handleAdd = async () => {
     if (!name || !area) return
     setAdding(true)
@@ -830,8 +838,7 @@ function BuildingsCard({ token, property, presets, onSaved }: { token: string; p
       )}
 
       <div className="grid grid-cols-4 gap-3">
-        <input value={name} onChange={(e) => setName(e.target.value)} className={inp} placeholder="Main house" list="building-presets" />
-        <datalist id="building-presets">{presets.map((p) => <option key={p.key} value={p.key.replace(/_/g, " ")} />)}</datalist>
+        <SelectOrOther value={name} onChange={setName} options={nameOptions} placeholder="Type building name…" className={inp} />
         <input type="number" value={area} onChange={(e) => setArea(e.target.value)} className={inp} placeholder="Area sqm" />
         <input type="number" value={year} onChange={(e) => setYear(e.target.value)} className={inp} placeholder="Built year" />
         <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inp}>
@@ -855,6 +862,11 @@ function ExternalWorksCard({ token, property, presets, onSaved }: { token: strin
   const [quantity, setQuantity] = useState("")
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState("")
+
+  const nameOptions = useMemo(
+    () => Array.from(new Set([...EXTERNAL_WORK_OPTIONS, ...presets.map((p) => p.key.replace(/_/g, " "))])),
+    [presets]
+  )
 
   const handleAdd = async () => {
     if (!name || !quantity) return
@@ -891,8 +903,7 @@ function ExternalWorksCard({ token, property, presets, onSaved }: { token: strin
       {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
 
       <div className="grid grid-cols-3 gap-3">
-        <input value={name} onChange={(e) => setName(e.target.value)} className={inp} placeholder="Fence, Gate, Retaining wall…" list="ew-presets" />
-        <datalist id="ew-presets">{presets.map((p) => <option key={p.key} value={p.key.replace(/_/g, " ")} />)}</datalist>
+        <SelectOrOther value={name} onChange={setName} options={nameOptions} placeholder="Type external work…" className={inp} />
         <select value={unit} onChange={(e) => setUnit(e.target.value)} className={inp}>
           <option value="sqm">sqm</option>
           <option value="linear_m">linear m</option>
@@ -993,7 +1004,7 @@ function ServicesAmenitiesCard({ token, property, onSaved }: { token: string; pr
         </div>
       )}
       <div className="grid grid-cols-[2fr_1fr_auto] gap-2">
-        <input value={amenityName} onChange={(e) => setAmenityName(e.target.value)} className={inp} placeholder="School, market, hospital…" />
+        <SelectOrOther value={amenityName} onChange={setAmenityName} options={AMENITY_OPTIONS} placeholder="Type amenity…" className={inp} />
         <input type="number" value={amenityDistance} onChange={(e) => setAmenityDistance(e.target.value)} className={inp} placeholder="Distance km" />
         <button onClick={handleAddAmenity} disabled={addingAmenity || !amenityName} className="flex items-center justify-center gap-1 rounded-lg bg-slate-800 px-3 text-xs font-semibold text-white hover:bg-slate-900 disabled:opacity-40">
           <Plus size={13} /> Add

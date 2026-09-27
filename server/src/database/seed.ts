@@ -361,6 +361,74 @@ async function seed() {
     console.log(`ℹ️  Comparable properties already seeded (${comparableCount} found)`);
   }
 
+  // ── Larger comparable dataset ── broader district coverage + more depth per district,
+  // so Sales Comparison and AVS have real breadth to score/rank against. Tagged with a
+  // distinct source so it's additive and idempotent regardless of the smaller batch above.
+  const surveyBatchTag = 'KOSRES Market Survey 2026';
+  const surveyCount = await comparableRepo.count({ where: { source: surveyBatchTag } });
+  if (surveyCount === 0) {
+    const surveyDefs: any[] = [
+      // — Kamonyi (more depth, matches the sample request's district) —
+      { district: 'Kamonyi', sector: 'Rugarika', propertyCategory: 'residential', plotAreaSqm: 480, buildingAreaSqm: 165, bedrooms: 3, ageYears: 10, condition: 'Fair', cbdDistanceKm: 4.5, accessibility: 'Murram', date: '2026-03-10', price: 140_000_000 },
+      { district: 'Kamonyi', sector: 'Rugarika', propertyCategory: 'residential', plotAreaSqm: 620, buildingAreaSqm: 210, bedrooms: 4, ageYears: 1, condition: 'Excellent', cbdDistanceKm: 3.5, accessibility: 'Tarmac', date: '2026-07-02', price: 245_000_000 },
+      { district: 'Kamonyi', sector: 'Musambira', propertyCategory: 'residential', plotAreaSqm: 350, buildingAreaSqm: 120, bedrooms: 2, ageYears: 15, condition: 'Poor', cbdDistanceKm: 6.0, accessibility: 'Footway', date: '2026-02-18', price: 85_000_000 },
+      { district: 'Kamonyi', sector: 'Nyamiyaga', propertyCategory: 'residential', plotAreaSqm: 510, buildingAreaSqm: 175, bedrooms: 3, ageYears: 7, condition: 'Good', cbdDistanceKm: 4.3, accessibility: 'Murram', date: '2026-05-22', price: 170_000_000 },
+      { district: 'Kamonyi', sector: 'Ruzo', propertyCategory: 'agricultural', plotAreaSqm: 2000, cbdDistanceKm: 8.0, accessibility: 'Footway', date: '2026-01-30', price: 30_000_000 },
+
+      // — Gasabo —
+      { district: 'Gasabo', sector: 'Kimihurura', propertyCategory: 'residential', plotAreaSqm: 350, buildingAreaSqm: 240, bedrooms: 4, ageYears: 3, condition: 'Very good', cbdDistanceKm: 3.0, accessibility: 'Tarmac', date: '2026-06-10', price: 380_000_000 },
+      { district: 'Gasabo', sector: 'Kinyinya', propertyCategory: 'residential', plotAreaSqm: 420, buildingAreaSqm: 195, bedrooms: 4, ageYears: 6, condition: 'Good', cbdDistanceKm: 7.5, accessibility: 'Tarmac', date: '2026-04-14', price: 220_000_000 },
+      { district: 'Gasabo', sector: 'Gisozi', propertyCategory: 'residential', plotAreaSqm: 300, buildingAreaSqm: 150, bedrooms: 3, ageYears: 9, condition: 'Fair', cbdDistanceKm: 5.5, accessibility: 'Cobble', date: '2026-03-28', price: 165_000_000 },
+      { district: 'Gasabo', sector: 'Remera', propertyCategory: 'commercial', plotAreaSqm: 600, buildingAreaSqm: 450, ageYears: 5, condition: 'Very good', cbdDistanceKm: 4.0, accessibility: 'Tarmac', date: '2026-05-05', price: 620_000_000 },
+
+      // — Kicukiro —
+      { district: 'Kicukiro', sector: 'Niboye', propertyCategory: 'residential', plotAreaSqm: 550, buildingAreaSqm: 300, bedrooms: 5, ageYears: 4, condition: 'Very good', cbdDistanceKm: 8.0, accessibility: 'Tarmac', date: '2026-06-20', price: 340_000_000 },
+      { district: 'Kicukiro', sector: 'Kagarama', propertyCategory: 'residential', plotAreaSqm: 400, buildingAreaSqm: 180, bedrooms: 3, ageYears: 8, condition: 'Good', cbdDistanceKm: 9.0, accessibility: 'Murram', date: '2026-02-12', price: 175_000_000 },
+      { district: 'Kicukiro', sector: 'Gatenga', propertyCategory: 'residential', plotAreaSqm: 320, buildingAreaSqm: 140, bedrooms: 3, ageYears: 12, condition: 'Fair', cbdDistanceKm: 10.0, accessibility: 'Murram', date: '2026-01-25', price: 120_000_000 },
+
+      // — Nyarugenge —
+      { district: 'Nyarugenge', sector: 'Nyamirambo', propertyCategory: 'residential', plotAreaSqm: 280, buildingAreaSqm: 160, bedrooms: 3, ageYears: 20, condition: 'Fair', cbdDistanceKm: 2.5, accessibility: 'Tarmac', date: '2026-04-02', price: 150_000_000 },
+      { district: 'Nyarugenge', sector: 'Muhima', propertyCategory: 'residential', plotAreaSqm: 250, buildingAreaSqm: 130, bedrooms: 2, ageYears: 25, condition: 'Poor', cbdDistanceKm: 1.5, accessibility: 'Cobble', date: '2026-03-15', price: 95_000_000 },
+      { district: 'Nyarugenge', sector: 'Nyarugenge', propertyCategory: 'commercial', plotAreaSqm: 200, buildingAreaSqm: 250, ageYears: 8, condition: 'Good', cbdDistanceKm: 0.5, accessibility: 'Tarmac', date: '2026-05-30', price: 480_000_000 },
+
+      // — Musanze —
+      { district: 'Musanze', sector: 'Muhoza', propertyCategory: 'residential', plotAreaSqm: 500, buildingAreaSqm: 170, bedrooms: 4, ageYears: 6, condition: 'Good', cbdDistanceKm: 2.0, accessibility: 'Tarmac', date: '2026-06-01', price: 130_000_000 },
+      { district: 'Musanze', sector: 'Cyuve', propertyCategory: 'residential', plotAreaSqm: 700, buildingAreaSqm: 200, bedrooms: 4, ageYears: 3, condition: 'Very good', cbdDistanceKm: 5.0, accessibility: 'Murram', date: '2026-04-20', price: 155_000_000 },
+      { district: 'Musanze', sector: 'Muhoza', propertyCategory: 'land', plotAreaSqm: 600, cbdDistanceKm: 3.0, accessibility: 'Tarmac', date: '2026-02-08', price: 18_000_000 },
+
+      // — Huye —
+      { district: 'Huye', sector: 'Ngoma', propertyCategory: 'residential', plotAreaSqm: 450, buildingAreaSqm: 150, bedrooms: 3, ageYears: 10, condition: 'Fair', cbdDistanceKm: 2.5, accessibility: 'Tarmac', date: '2026-03-22', price: 95_000_000 },
+      { district: 'Huye', sector: 'Tumba', propertyCategory: 'residential', plotAreaSqm: 380, buildingAreaSqm: 140, bedrooms: 3, ageYears: 7, condition: 'Good', cbdDistanceKm: 4.0, accessibility: 'Murram', date: '2026-05-15', price: 105_000_000 },
+
+      // — Rubavu —
+      { district: 'Rubavu', sector: 'Gisenyi', propertyCategory: 'residential', plotAreaSqm: 400, buildingAreaSqm: 200, bedrooms: 4, ageYears: 5, condition: 'Very good', cbdDistanceKm: 1.5, accessibility: 'Tarmac', date: '2026-06-25', price: 210_000_000 },
+      { district: 'Rubavu', sector: 'Nyamyumba', propertyCategory: 'residential', plotAreaSqm: 500, buildingAreaSqm: 165, bedrooms: 3, ageYears: 9, condition: 'Fair', cbdDistanceKm: 6.0, accessibility: 'Murram', date: '2026-01-18', price: 110_000_000 },
+
+      // — Muhanga —
+      { district: 'Muhanga', sector: 'Nyamabuye', propertyCategory: 'residential', plotAreaSqm: 470, buildingAreaSqm: 155, bedrooms: 3, ageYears: 11, condition: 'Fair', cbdDistanceKm: 2.0, accessibility: 'Tarmac', date: '2026-04-08', price: 100_000_000 },
+      { district: 'Muhanga', sector: 'Kabgayi', propertyCategory: 'residential', plotAreaSqm: 550, buildingAreaSqm: 185, bedrooms: 4, ageYears: 4, condition: 'Good', cbdDistanceKm: 3.5, accessibility: 'Tarmac', date: '2026-06-12', price: 145_000_000 },
+    ];
+
+    for (const c of surveyDefs) {
+      const { price, date, ...propData } = c;
+      const saved = await comparableRepo.save({
+        ...propData,
+        source: surveyBatchTag,
+        sourceReliability: 'medium',
+        verificationStatus: 'verified',
+      });
+      await comparableTxRepo.save({
+        comparablePropertyId: saved.id,
+        transactionDate: date,
+        price,
+        pricePerSqm: propData.buildingAreaSqm ? Math.round(price / propData.buildingAreaSqm) : undefined,
+      });
+    }
+    console.log(`✅ Seeded ${surveyDefs.length} additional comparable properties across 9 districts (${surveyBatchTag})`);
+  } else {
+    console.log(`ℹ️  ${surveyBatchTag} comparables already seeded (${surveyCount} found)`);
+  }
+
   // ── One fully-populated sample valuation request ── based on a real KOSRES report, so the
   // ledger reproduces familiar figures the moment you run a calculation on it.
   const requestRepo  = AppDataSource.getRepository('valuation_requests');
