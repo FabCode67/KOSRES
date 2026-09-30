@@ -42,6 +42,33 @@ export class UploadController {
   }
 
   @Public()
+  @Post('documents')
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload supporting documents (land title, etc.) to Cloudinary' })
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: memoryStorage(),
+      limits: { fileSize: 15 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        if (/\.(pdf|doc|docx|jpg|jpeg|png|webp)$/i.test(file.originalname)) {
+          cb(null, true);
+        } else {
+          cb(new BadRequestException('Only PDF, Word, or image files are allowed'), false);
+        }
+      },
+    }),
+  )
+  async uploadDocuments(@UploadedFiles() files: Express.Multer.File[]) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files provided');
+    }
+    const results = await Promise.all(
+      files.map((f) => this.uploadService.uploadRaw(f.buffer, f.originalname, 'kosres/documents')),
+    );
+    return { urls: results.map((r) => r.secureUrl), details: results };
+  }
+
+  @Public()
   @Get('sign')
   @ApiOperation({ summary: 'Get signed params for direct browser → Cloudinary upload' })
   getSignature() {

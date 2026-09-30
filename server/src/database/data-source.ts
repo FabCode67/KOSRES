@@ -17,5 +17,13 @@ export const AppDataSource = new DataSource({
   entities: [join(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [join(__dirname, '../migrations/*{.ts,.js}')],
   synchronize: false,
-  logging: process.env.NODE_ENV === 'development',
+  logging: process.env.NODE_ENV === 'development' && !process.env.QUIET_SQL,
+  // Without these, a stalled connection (Neon compute waking up, a lock
+  // wait, a dropped network hop) hangs forever with no error -- as seen
+  // during the cadastral import. Fail loudly instead of hanging silently.
+  connectTimeoutMS: 15000,
+  extra: {
+    statement_timeout: 60000, // 60s: generous for a 2000-row upsert batch, but not infinite
+    query_timeout: 60000,
+  },
 });

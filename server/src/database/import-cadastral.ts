@@ -23,11 +23,22 @@
  *    corrected version of it, never creates duplicates.
  */
 import 'reflect-metadata';
+
+// This importer's own progress logging (rows read, batches flushed) is
+// enough on its own; TypeORM's per-query SQL logging would otherwise print
+// every batch's full INSERT statement -- tens of thousands of characters,
+// one per batch -- which visibly slows the terminal and made a
+// normal-speed run look stuck. Must be set before data-source.ts (which
+// reads it) is imported below.
+process.env.QUIET_SQL = '1';
+
 import * as ExcelJS from 'exceljs';
 import { AppDataSource } from './data-source';
 import { CadastralParcel } from '../valuation/entities/cadastral-parcel.entity';
 
-const BATCH_SIZE = 2000;
+// Smaller than before (was 2000): fewer parameters per statement, and if a
+// batch does stall against Neon, less half-done work sits in flight.
+const BATCH_SIZE = 500;
 
 function toNumberOrNull(v: any): number | null {
   if (v == null || v === '') return null;
@@ -84,11 +95,24 @@ async function importFile(filePath: string) {
   let imported = 0;
   let skippedNoUpi = 0;
   let skippedNoCoords = 0;
+  let duplicatesInBatch = 0;
   let batch: Partial<CadastralParcel>[] = [];
 
+  // Postgres's ON CONFLICT DO UPDATE cannot touch the same row twice in one
+  // statement, so if the same UPI appears more than once within a single
+  // batch (seen in the Kigali export), upsert() blows up with "ON CONFLICT
+  // DO UPDATE command cannot affect row a second time". Dedupe within each
+  // batch first, keeping the LAST occurrence (most complete row wins) --
+  // duplicates across different batches are already handled fine since
+  // each batch is its own separate upsert.
   const flush = async () => {
     if (batch.length === 0) return;
-    await repo.upsert(batch as CadastralParcel[], ['upi']);
+    const byUpi = new Map<string, Partial<CadastralParcel>>();
+    for (const row of batch) {
+      if (byUpi.has(row.upi as string)) duplicatesInBatch++;
+      byUpi.set(row.upi as string, row);
+    }
+    await repo.upsert(Array.from(byUpi.values()) as CadastralParcel[], ['upi']);
     batch = [];
   };
 
@@ -147,7 +171,8 @@ async function importFile(filePath: string) {
 
   console.log(
     `Done: ${totalRows} data rows | imported ${imported} | skipped (no UPI) ${skippedNoUpi} | ` +
-    `missing coordinates ${skippedNoCoords} (still imported with null lat/lng)`,
+    `missing coordinates ${skippedNoCoords} (still imported with null lat/lng) | ` +
+    `duplicate UPIs within a batch ${duplicatesInBatch} (last occurrence kept)`,
   );
 }
 

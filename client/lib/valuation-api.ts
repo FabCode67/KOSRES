@@ -317,6 +317,83 @@ export function publicDrivingDistanceCadastralByUpi(upi: string) {
   return jsonFetch<CadastralDrivingDistanceResult>(`/valuation/cadastral/public-driving-distance?upi=${encodeURIComponent(upi)}`)
 }
 
+// ── Evaluation Intakes (public "Request a Valuation" form) ─────────────
+export type EvaluationIntakeStatus = "new" | "in_review" | "converted" | "rejected"
+
+export type EvaluationIntake = {
+  id: string
+  reference: string
+  upi: string
+  clientNames: string
+  clientPhone: string | null
+  clientEmail: string | null
+  purpose: string
+  typeOfProperty: string
+  isDeveloped: boolean
+  constructionMaterial: string | null
+  bedrooms: number | null
+  bathrooms: number | null
+  landTitleDocumentUrls: string[]
+  propertyPictureUrls: string[]
+  status: EvaluationIntakeStatus
+  reviewedBy?: { id: string; name: string } | null
+  adminNotes: string | null
+  linkedRequestId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type CreateEvaluationIntakeInput = {
+  upi: string
+  clientNames: string
+  clientPhone?: string
+  clientEmail?: string
+  purpose: string
+  typeOfProperty: string
+  isDeveloped?: boolean
+  constructionMaterial?: string
+  bedrooms?: number
+  bathrooms?: number
+  landTitleDocumentUrls?: string[]
+  propertyPictureUrls?: string[]
+}
+
+export function createEvaluationIntake(data: CreateEvaluationIntakeInput) {
+  return jsonFetch<EvaluationIntake>(`/valuation/evaluation-intakes`, undefined, { method: "POST", body: JSON.stringify(data) })
+}
+export function getEvaluationIntakes(token: string, status?: EvaluationIntakeStatus) {
+  const q = status ? `?status=${status}` : ""
+  return jsonFetch<EvaluationIntake[]>(`/valuation/evaluation-intakes${q}`, token)
+}
+export function getEvaluationIntake(token: string, id: string) {
+  return jsonFetch<EvaluationIntake>(`/valuation/evaluation-intakes/${id}`, token)
+}
+export function updateEvaluationIntakeStatus(token: string, id: string, data: { status: EvaluationIntakeStatus; adminNotes?: string }) {
+  return jsonFetch<EvaluationIntake>(`/valuation/evaluation-intakes/${id}/status`, token, { method: "PATCH", body: JSON.stringify(data) })
+}
+export function convertEvaluationIntake(token: string, id: string) {
+  return jsonFetch<{ intake: EvaluationIntake; requestId: string; alreadyConverted: boolean }>(`/valuation/evaluation-intakes/${id}/convert`, token, { method: "POST" })
+}
+
+// ── Public file uploads (used by the landing-page evaluation form) ─────
+async function uploadFiles(endpoint: string, files: File[]): Promise<string[]> {
+  const fd = new FormData()
+  files.forEach((f) => fd.append("files", f))
+  const res = await fetch(`${API_URL}${endpoint}`, { method: "POST", body: fd })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.message || "Upload failed")
+  }
+  const { urls } = await res.json()
+  return urls as string[]
+}
+export function uploadPropertyPictures(files: File[]) {
+  return uploadFiles("/upload/images", files)
+}
+export function uploadLandTitleDocuments(files: File[]) {
+  return uploadFiles("/upload/documents", files)
+}
+
 export function updatePropertyLocation(token: string, propertyId: string, data: any) {
   return jsonFetch(`/valuation/properties/${propertyId}/location`, token, { method: "PATCH", body: JSON.stringify(data) })
 }

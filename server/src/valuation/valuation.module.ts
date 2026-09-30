@@ -9,6 +9,7 @@ import { ValuationCalculationsModule } from './calculations/valuation-calculatio
 import { ReportsModule } from './reports/reports.module';
 import { ComparablesModule } from './comparables/comparables.module';
 import { CadastralModule } from './cadastral/cadastral.module';
+import { EvaluationIntakesModule } from './evaluation-intakes/evaluation-intakes.module';
 
 /**
  * Aggregates every valuation sub-module — import ONLY this into AppModule.
@@ -27,6 +28,7 @@ import { CadastralModule } from './cadastral/cadastral.module';
     ReportsModule,
     ComparablesModule,
     CadastralModule,
+    EvaluationIntakesModule,
   ],
 })
 export class ValuationModule {}

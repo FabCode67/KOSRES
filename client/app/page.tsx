@@ -26,6 +26,7 @@ import PublicationsPreview from "@/components/PublicationsPreview"
 import PartnersSection from "@/components/PartnersSection"
 import StaffSection from "@/components/StaffSection"
 import CbdDistanceChecker from "@/components/CbdDistanceChecker"
+import EvaluationRequestForm from "@/components/EvaluationRequestForm"
 import { getFeaturedProperties } from "@/lib/api"
 import type { ApiProperty } from "@/lib/api"
 
@@ -227,6 +228,13 @@ export default async function HomePage() {
       <section className="bg-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <CbdDistanceChecker />
+        </div>
+      </section>
+
+      {/* ── REQUEST A VALUATION (public intake form) ── */}
+      <section className="bg-[oklch(0.97_0.005_80)] py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <EvaluationRequestForm />
         </div>
       </section>
 

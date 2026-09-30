@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import Link from "next/link"
-import { LayoutGrid, FilePlus2, Settings2, LogOut, Loader2, Ruler, Database, ClipboardCheck } from "lucide-react"
+import { LayoutGrid, FilePlus2, Settings2, LogOut, Loader2, Ruler, Database, ClipboardCheck, Inbox } from "lucide-react"
 
 const NAV = [
   { label: "Requests",  href: "/valuation",           icon: LayoutGrid },
@@ -81,6 +81,18 @@ export default function ValuationLayout({ children }: { children: React.ReactNod
               </Link>
             )
           })}
+
+          {role === "admin" && (
+            <Link
+              href="/valuation/evaluation-requests"
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                pathname.startsWith("/valuation/evaluation-requests") ? "bg-white/10 font-semibold text-white" : "text-white/60 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <Inbox size={16} />
+              Evaluation Requests
+            </Link>
+          )}
 
           {role === "admin" && (
             <Link
