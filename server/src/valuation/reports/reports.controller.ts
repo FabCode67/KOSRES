@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, UseGuards, Request, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards, Request, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { ReportsService } from './reports.service';
 import { requireRoles } from '../require-roles.util';
@@ -17,8 +17,8 @@ export class ReportsController {
   }
 
   @Post()
-  generate(@Request() req: any, @Param('requestId') requestId: string) {
+  generate(@Request() req: any, @Param('requestId') requestId: string, @Body() body: any) {
     requireRoles(req, ['admin', 'valuer']);
-    return this.service.generate(requestId, req.user.id);
+    return this.service.generate(requestId, req.user.id, body ?? {});
   }
 }

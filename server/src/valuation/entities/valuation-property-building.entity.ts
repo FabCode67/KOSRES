@@ -37,6 +37,10 @@ export class ValuationPropertyBuilding {
   @Column({ nullable: true }) doors: string;
   @Column({ nullable: true }) windows: string;
 
+  // Rooms per floor, captured during valuation: [{ floor: 'Ground floor', items: ['Living room'] }]
+  @Column({ type: 'jsonb', default: () => "'[]'" })
+  accommodation: { floor: string; items: string[] }[];
+
   @Column({ name: 'completion_percentage', type: 'numeric', precision: 5, scale: 2, default: 100 })
   completionPercentage: number;
 }

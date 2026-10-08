@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { ValuationRequest, WorkflowTransition, RequestStatus, ValuationPurpose } from '../entities/valuation-request.entity';
 import { ValuationApproval } from '../entities/valuation-approval.entity';
 import { User, UserRole } from '../../users/user.entity';
@@ -37,7 +37,10 @@ export class ValuationRequestsService {
 
   /** Used to populate "assign technician/valuer" pickers — scoped to active users of the given role. */
   findUsersByRole(role: UserRole) {
-    return this.userRepo.find({ where: { role, isActive: true }, select: ['id', 'name', 'email'] });
+    // Admins hold every valuation role, so they are always assignable as
+    // valuer/technician -- lets an admin run a case end to end on their own.
+    const roles = role === UserRole.ADMIN ? [role] : [role, UserRole.ADMIN];
+    return this.userRepo.find({ where: { role: In(roles), isActive: true }, select: ['id', 'name', 'email', 'role'] });
   }
 
   private async nextReference(): Promise<string> {
@@ -87,6 +90,15 @@ export class ValuationRequestsService {
     });
     if (!request) throw new NotFoundException('Valuation request not found');
     return request;
+  }
+
+  async updateDetails(id: string, data: { beneficiary?: string; instructor?: string }) {
+    await this.findOne(id);
+    const patch: any = {};
+    if (data.beneficiary !== undefined) patch.beneficiary = data.beneficiary?.trim() || null;
+    if (data.instructor !== undefined) patch.instructor = data.instructor?.trim() || null;
+    if (Object.keys(patch).length) await this.repo.update(id, patch);
+    return this.findOne(id);
   }
 
   async assign(id: string, data: { assignedValuerId?: string; assignedTechnicianId?: string }, actorId: string) {

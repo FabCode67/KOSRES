@@ -67,6 +67,21 @@ export class ValuationPropertiesService {
     return this.buildingRepo.save(this.buildingRepo.create({ ...data, property: { id: propertyId } as any }));
   }
 
+  async updateBuilding(propertyId: string, buildingId: string, data: Partial<ValuationPropertyBuilding>) {
+    const existing = await this.buildingRepo.findOne({ where: { id: buildingId, property: { id: propertyId } } });
+    if (!existing) throw new NotFoundException('Building not found');
+    const { id: _id, property: _p, ...patch } = data as any;
+    await this.buildingRepo.update(buildingId, patch);
+    return this.buildingRepo.findOneOrFail({ where: { id: buildingId } });
+  }
+
+  async removeBuilding(propertyId: string, buildingId: string) {
+    const existing = await this.buildingRepo.findOne({ where: { id: buildingId, property: { id: propertyId } } });
+    if (!existing) throw new NotFoundException('Building not found');
+    await this.buildingRepo.delete(buildingId);
+    return { deleted: true };
+  }
+
   addExternalWork(propertyId: string, data: Partial<ValuationExternalWork>) {
     return this.workRepo.save(this.workRepo.create({ ...data, property: { id: propertyId } as any }));
   }

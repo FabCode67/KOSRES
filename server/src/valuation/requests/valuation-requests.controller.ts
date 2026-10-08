@@ -40,6 +40,12 @@ export class ValuationRequestsController {
     return this.service.assign(id, body, req.user.id);
   }
 
+  @Patch(':id/details')
+  updateDetails(@Request() req: any, @Param('id') id: string, @Body() body: { beneficiary?: string; instructor?: string }) {
+    requireRoles(req, ['admin', 'valuer']);
+    return this.service.updateDetails(id, body);
+  }
+
   @Patch(':id/transition')
   transition(@Request() req: any, @Param('id') id: string, @Body() body: { toStatus: RequestStatus; reason?: string }) {
     requireRoles(req, ['admin', 'valuer', 'technician']);

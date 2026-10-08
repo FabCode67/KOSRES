@@ -4,20 +4,21 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import { ReportWizard } from "@/components/ReportWizard"
 import {
   ArrowLeft, Loader2, Plus, Trash2, Calculator, Check, AlertCircle,
   MapPin, Building2, Hammer, ChevronRight, FileText, Edit3, ShieldCheck, ArrowRight, X, Search,
 } from "lucide-react"
 import {
   getRequest, getPropertyByRequest, createProperty, updatePropertyLocation, updatePropertyLand,
-  addBuilding, addExternalWork, getRateTables, getCalculationRules,
+  addBuilding, updateBuilding, removeBuilding, addExternalWork, uploadPropertyPictures, uploadLandTitleDocuments, getRateTables, getCalculationRules,
   getActiveEngineVersion, selectEngine, runCostApproach, transitionRequest,
   approveRequest, addAdjustment, generateReport, getReport,
   getComparables, getSelectionsForRequest, addComparableSelection, updateComparableSelection, removeComparableSelection, runSalesComparison,
   runIncomeApproach, getAssignableUsers, createInspection, runAvs, addService, addAmenity, lookupCadastralByUpi,
 } from "@/lib/valuation-api"
 import type {
-  ValuationRequestDetail, ValuationPropertyDetail, RateTable, CalculationRule, CostApproachBreakdown, RequestStatus, ValuationResult, ValuationReport,
+  ValuationRequestDetail, ValuationPropertyDetail, RateTable, CalculationRule, CostApproachBreakdown, RequestStatus, ValuationResult, ValuationReport, ValuationBuilding,
   ComparableProperty, ComparableSelectionRow, CadastralLookupResult,
 } from "@/lib/valuation-api"
 
@@ -280,7 +281,7 @@ export default function ValuationRequestDetailPage() {
             )}
 
             {(request.status === "valuer_final_review" || report) && (
-              <ReportCard token={token!} requestId={request.id} report={report} status={request.status} onChanged={load} />
+              <ReportWizard token={token!} requestId={request.id} request={request} property={property ?? undefined} report={report} status={request.status} onChanged={load} />
             )}
 
             {request.status === "draft_report" && (
@@ -588,43 +589,6 @@ function ApproveCard({ token, requestId, onApproved }: { token: string; requestI
   )
 }
 
-// ═══ Report generation ─ produces the PDF and advances to Draft Report ═══
-function ReportCard({ token, requestId, report, status, onChanged }: { token: string; requestId: string; report: ValuationReport | null; status: RequestStatus; onChanged: () => void }) {
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState("")
-
-  const handleGenerate = async () => {
-    setBusy(true); setError("")
-    try { await generateReport(token, requestId); onChanged() }
-    catch (e: any) { setError(e.message || "Failed to generate report") }
-    setBusy(false)
-  }
-
-  return (
-    <div className="rounded-xl border border-border bg-white p-5">
-      <div className="mb-2 flex items-center gap-2">
-        <FileText size={16} className="text-[oklch(0.42_0.19_25)]" />
-        <h2 className="font-heading text-base font-bold text-slate-800">Valuation report</h2>
-      </div>
-      {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
-
-      {report && (
-        <a href={report.pdfUrl} target="_blank" rel="noopener noreferrer"
-          className="mb-2 flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-muted">
-          <span className="font-mono">{report.reference}.pdf</span>
-          <span className="text-[oklch(0.42_0.19_25)]">Download ↓</span>
-        </a>
-      )}
-
-      {(status === "valuer_final_review" || report) && (
-        <button onClick={handleGenerate} disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[oklch(0.42_0.19_25)] py-2.5 text-sm font-semibold text-white hover:bg-[oklch(0.36_0.18_25)] disabled:opacity-50">
-          {busy ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />} {report ? "Regenerate report" : "Generate report"}
-        </button>
-      )}
-    </div>
-  )
-}
-
 function PropertyIntakeCard({ token, requestId, onCreated }: { token: string; requestId: string; onCreated: () => void }) {
   const [upi, setUpi] = useState("")
   const [category, setCategory] = useState("residential")
@@ -892,6 +856,85 @@ function LandCard({ token, property, suggestedRate, onSaved }: { token: string; 
 // ═══════════════════════════════════════════════════════════════════════
 // Buildings
 // ═══════════════════════════════════════════════════════════════════════
+function BuildingRow({ token, propertyId, b, onSaved }: { token: string; propertyId: string; b: ValuationBuilding; onSaved: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+  const [f, setF] = useState({
+    floors: b.floors != null ? String(b.floors) : "", walling: b.walling ?? "", roofing: b.roofing ?? "",
+    flooring: b.flooring ?? "", ceiling: b.ceiling ?? "", doors: b.doors ?? "", windows: b.windows ?? "",
+  })
+  const [acc, setAcc] = useState<{ floor: string; text: string }[]>(
+    (b.accommodation ?? []).map((a) => ({ floor: a.floor, text: a.items.join("\n") }))
+  )
+
+  const save = async () => {
+    setSaving(true); setError("")
+    try {
+      await updateBuilding(token, propertyId, b.id, {
+        floors: f.floors ? Number(f.floors) : null,
+        walling: f.walling || null, roofing: f.roofing || null, flooring: f.flooring || null,
+        ceiling: f.ceiling || null, doors: f.doors || null, windows: f.windows || null,
+        accommodation: acc
+          .filter((a) => a.floor.trim())
+          .map((a) => ({ floor: a.floor.trim(), items: a.text.split("\n").map((x) => x.trim()).filter(Boolean) })),
+      })
+      onSaved(); setOpen(false)
+    } catch (e: any) { setError(e?.message || "Failed to save") }
+    setSaving(false)
+  }
+  const del = async () => {
+    if (!window.confirm(`Remove ${b.name}?`)) return
+    try { await removeBuilding(token, propertyId, b.id); onSaved() } catch (e: any) { setError(e?.message || "Failed to remove") }
+  }
+  const field = (k: keyof typeof f, label: string, ph: string) => (
+    <label className="block text-xs font-semibold text-slate-600">{label}
+      <input value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} placeholder={ph} className="mt-1 w-full rounded-md border border-border px-2 py-1.5 text-sm font-normal" />
+    </label>
+  )
+
+  return (
+    <div className="rounded-lg border border-border">
+      <div className="flex items-center justify-between px-4 py-2.5 text-sm">
+        <span className="font-medium text-slate-700">{b.name}</span>
+        <span className="flex items-center gap-3">
+          <span className="font-mono text-xs text-muted-foreground">{b.areaSqm} sqm{b.constructionYear ? ` · built ${b.constructionYear}` : ""}{b.condition ? ` · ${b.condition}` : ""}</span>
+          <button type="button" onClick={() => setOpen(!open)} className="text-xs font-semibold text-[oklch(0.42_0.19_25)] hover:underline">{open ? "Close" : "Construction & rooms"}</button>
+          <button type="button" onClick={del} className="text-red-600" aria-label="Remove building"><Trash2 size={13} /></button>
+        </span>
+      </div>
+      {open && (
+        <div className="space-y-3 border-t border-border bg-muted/20 p-4">
+          <div className="grid grid-cols-2 gap-3">
+            {field("floors", "Number of floors", "e.g. 2")}
+            {field("walling", "Walling", "e.g. Burnt bricks plastered and painted")}
+            {field("roofing", "Roof", "e.g. Pre-painted iron sheets on timber trusses")}
+            {field("flooring", "Floor", "e.g. Ceramic tiles")}
+            {field("ceiling", "Ceiling", "e.g. Gypsum")}
+            {field("doors", "Doors", "e.g. Wooden / metal")}
+            {field("windows", "Windows", "e.g. Aluminium framed glass")}
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-semibold text-slate-600">Accommodation per floor <span className="font-normal text-muted-foreground">(one room per line)</span></p>
+            {acc.map((a, i) => (
+              <div key={i} className="mb-2 grid grid-cols-[160px_1fr_auto] gap-2">
+                <input value={a.floor} onChange={(e) => setAcc(acc.map((x, j) => j === i ? { ...x, floor: e.target.value } : x))} placeholder="Ground floor" className="rounded-md border border-border px-2 py-1.5 text-sm" />
+                <textarea value={a.text} rows={3} onChange={(e) => setAcc(acc.map((x, j) => j === i ? { ...x, text: e.target.value } : x))} placeholder={"Living room\n2 bedrooms\nKitchen"} className="rounded-md border border-border px-2 py-1.5 text-sm" />
+                <button type="button" onClick={() => setAcc(acc.filter((_, j) => j !== i))} className="self-start text-red-600"><X size={14} /></button>
+              </div>
+            ))}
+            <button type="button" onClick={() => setAcc([...acc, { floor: acc.length === 0 ? "Ground floor" : "", text: "" }])} className="flex items-center gap-1 text-xs font-semibold text-[oklch(0.42_0.19_25)] hover:underline"><Plus size={12} /> Add floor</button>
+          </div>
+          {error && <p className="text-xs text-red-600">{error}</p>}
+          <button type="button" onClick={save} disabled={saving} className="flex items-center gap-1.5 rounded-lg bg-[oklch(0.42_0.19_25)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+            {saving && <Loader2 size={13} className="animate-spin" />} Save details
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function BuildingsCard({ token, property, presets, onSaved }: { token: string; property: ValuationPropertyDetail; presets: { key: string; rate: number }[]; onSaved: () => void }) {
   const [name, setName] = useState("")
   const [area, setArea] = useState("")
@@ -927,12 +970,9 @@ function BuildingsCard({ token, property, presets, onSaved }: { token: string; p
       </div>
 
       {property.buildings.length > 0 && (
-        <div className="mb-4 divide-y divide-border rounded-lg border border-border">
+        <div className="mb-4 space-y-2">
           {property.buildings.map((b) => (
-            <div key={b.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
-              <span className="font-medium text-slate-700">{b.name}</span>
-              <span className="font-mono text-xs text-muted-foreground">{b.areaSqm} sqm{b.constructionYear ? ` · built ${b.constructionYear}` : ""}{b.condition ? ` · ${b.condition}` : ""}</span>
-            </div>
+            <BuildingRow key={b.id} token={token} propertyId={property.id} b={b} onSaved={onSaved} />
           ))}
         </div>
       )}

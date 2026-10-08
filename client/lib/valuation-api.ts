@@ -89,13 +89,17 @@ export interface ValuationPropertyDetail {
   propertySubtype: string
   tenure?: string
   occupancyStatus?: string
+  mortgageStatus?: string
+  restrictionsStatus?: string
+  processStatus?: string
+  images?: { id: string; url: string; description?: string }[]
   location?: {
     province?: string; district?: string; sector?: string; cell?: string; village?: string
     accessibility?: string; neighborhoodQuality?: string; distanceToCbdKm?: number
     latitude?: number; longitude?: number
   }
-  land?: { plotSizeSqm?: number; zoning?: string; topography?: string }
-  buildings: { id: string; name: string; areaSqm: number; constructionYear?: number; condition?: string }[]
+  land?: { plotSizeSqm?: number; zoning?: string; topography?: string; shape?: string; currentUse?: string }
+  buildings: ValuationBuilding[]
   externalWorks: { id: string; name: string; unit: string; quantity: number }[]
   services?: { id: string; type: string; status: string; provider?: string }[]
   amenities?: { id: string; name: string; distanceKm?: number }[]
@@ -163,9 +167,18 @@ export function approveRequest(token: string, id: string, data: { comment?: stri
 export function addAdjustment(token: string, resultId: string, data: { newValue: number; reason: string }) {
   return jsonFetch<ValuationResult>(`/valuation/calculations/results/${resultId}/adjustments`, token, { method: "POST", body: JSON.stringify(data) })
 }
-export interface ValuationReport { id: string; reference: string; pdfUrl: string; generatedAt: string }
-export function generateReport(token: string, requestId: string) {
-  return jsonFetch<ValuationReport>(`/valuation/requests/${requestId}/report`, token, { method: "POST" })
+export interface ValuationBuilding {
+  id: string; name: string; areaSqm: number; constructionYear?: number; condition?: string
+  floors?: number; walling?: string; roofing?: string; flooring?: string; ceiling?: string; doors?: string; windows?: string
+  accommodation?: { floor: string; items: string[] }[]
+}
+export interface ValuationReport { id: string; reference: string; pdfUrl?: string; docxUrl?: string; generatedAt: string }
+export interface GenerateReportOptions {
+  valuationDate?: string; generalRemarks?: string
+  locationMapUrl?: string; cadastralPlanUrl?: string; planningZoneMapUrl?: string; appendixUrls?: string[]; logoUrl?: string
+}
+export function generateReport(token: string, requestId: string, body: GenerateReportOptions = {}) {
+  return jsonFetch<ValuationReport>(`/valuation/requests/${requestId}/report`, token, { method: "POST", body: JSON.stringify(body) })
 }
 export function getReport(token: string, requestId: string): Promise<ValuationReport | null> {
   return jsonFetch<ValuationReport>(`/valuation/requests/${requestId}/report`, token).catch(() => null)
@@ -400,6 +413,12 @@ export function updatePropertyLocation(token: string, propertyId: string, data: 
 export function updatePropertyLand(token: string, propertyId: string, data: any) {
   return jsonFetch(`/valuation/properties/${propertyId}/land`, token, { method: "PATCH", body: JSON.stringify(data) })
 }
+export function updateBuilding(token: string, propertyId: string, buildingId: string, data: any) {
+  return jsonFetch<ValuationBuilding>(`/valuation/properties/${propertyId}/buildings/${buildingId}`, token, { method: "PATCH", body: JSON.stringify(data) })
+}
+export function removeBuilding(token: string, propertyId: string, buildingId: string) {
+  return jsonFetch(`/valuation/properties/${propertyId}/buildings/${buildingId}`, token, { method: "DELETE" })
+}
 export function addBuilding(token: string, propertyId: string, data: any) {
   return jsonFetch(`/valuation/properties/${propertyId}/buildings`, token, { method: "POST", body: JSON.stringify(data) })
 }
@@ -451,4 +470,11 @@ export function runCostApproach(token: string, input: RunCostApproachInput) {
 // ── Engines ──
 export function getActiveEngineVersion(token: string, code: string) {
   return jsonFetch<{ id: string; version: number }>(`/valuation/engines/${code}/active-version`, token)
+}
+
+export function updatePropertyDetails(token: string, propertyId: string, data: any) {
+  return jsonFetch(`/valuation/properties/${propertyId}`, token, { method: "PATCH", body: JSON.stringify(data) })
+}
+export function updateRequestDetails(token: string, requestId: string, data: { beneficiary?: string; instructor?: string }) {
+  return jsonFetch(`/valuation/requests/${requestId}/details`, token, { method: "PATCH", body: JSON.stringify(data) })
 }

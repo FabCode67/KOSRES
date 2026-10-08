@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Body, Param, UseGuards, Request,
+  Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request,
   UseInterceptors, UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -54,6 +54,18 @@ export class ValuationPropertiesController {
   addBuilding(@Request() req: any, @Param('id') id: string, @Body() body: any) {
     requireRoles(req, ['admin', 'valuer', 'technician']);
     return this.service.addBuilding(id, body);
+  }
+
+  @Patch(':id/buildings/:buildingId')
+  updateBuilding(@Request() req: any, @Param('id') id: string, @Param('buildingId') buildingId: string, @Body() body: any) {
+    requireRoles(req, ['admin', 'valuer', 'technician']);
+    return this.service.updateBuilding(id, buildingId, body);
+  }
+
+  @Delete(':id/buildings/:buildingId')
+  removeBuilding(@Request() req: any, @Param('id') id: string, @Param('buildingId') buildingId: string) {
+    requireRoles(req, ['admin', 'valuer', 'technician']);
+    return this.service.removeBuilding(id, buildingId);
   }
 
   @Post(':id/external-works')

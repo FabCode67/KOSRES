@@ -13,8 +13,7 @@ const inp =
  * and distance to the Kigali CBD from imported cadastral survey data.
  * Calls the unauthenticated /valuation/cadastral/public-lookup endpoint.
  *
- * Coverage is currently limited to imported districts (Kamonyi, Gakenke,
- * Gicumbi, Muhanga, Kigali City) -- a "not found" result is expected and
+ * Coverage is currently limited to Kigali City -- a "not found" result is expected and
  * explained, not treated as an error.
  */
 export default function CbdDistanceChecker() {
@@ -161,7 +160,7 @@ export default function CbdDistanceChecker() {
       )}
 
       <p className="mt-4 text-center text-[11px] text-muted-foreground">
-        Coverage so far: Kamonyi, Gakenke, Gicumbi, Muhanga, Kigali City. More districts are being added.
+        Coverage so far: Kigali City (Gasabo, Kicukiro, Nyarugenge). More areas may be added later.
       </p>
     </div>
   )

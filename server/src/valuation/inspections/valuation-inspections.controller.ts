@@ -10,7 +10,7 @@ export class ValuationInspectionsController {
 
   @Get('mine')
   findMine(@Request() req: any) {
-    requireRoles(req, ['technician']);
+    requireRoles(req, ['technician', 'admin']);
     return this.service.findForTechnician(req.user.id);
   }
 

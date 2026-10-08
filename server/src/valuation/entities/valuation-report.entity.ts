@@ -18,6 +18,9 @@ export class ValuationReportEntity {
   @Column({ name: 'pdf_url', nullable: true })
   pdfUrl: string;
 
+  @Column({ name: 'docx_url', nullable: true })
+  docxUrl: string;
+
   @Column({ name: 'generated_by_id' })
   generatedById: string;
 
