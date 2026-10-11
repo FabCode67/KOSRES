@@ -2,7 +2,8 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ValuationProperty } from '../entities/valuation-property.entity';
-import { buildReportDocx } from './report-docx';
+import { buildReport, ReportInput } from './report-docx';
+import { docxToPdf, findHeadingPages } from './docx-to-pdf.util';
 import { ValuationReportEntity } from '../entities/valuation-report.entity';
 import { ValuationApproval } from '../entities/valuation-approval.entity';
 import { ValuationRequestsService } from '../requests/valuation-requests.service';
@@ -81,7 +82,7 @@ export class ReportsService {
       : approval?.at ? new Date(approval.at) : new Date();
     if (isNaN(valuationDate.getTime())) throw new BadRequestException('Invalid valuation date');
 
-    const docxBuffer = await buildReportDocx({
+    const reportInput: ReportInput = {
       reference: request.reference,
       purpose: String(request.purpose),
       beneficiary: request.beneficiary,
@@ -104,13 +105,30 @@ export class ReportsService {
         appendixUrls: opts.appendixUrls,
         logoUrl: opts.logoUrl,
       },
-    });
+    };
+
+    // Pass 1: build + convert to PDF (if LibreOffice is available) to learn which page each
+    // heading lands on. Pass 2: rebuild with a real table of contents and convert again.
+    let built = await buildReport(reportInput);
+    let pdfBuffer = await docxToPdf(built.buffer);
+    if (pdfBuffer) {
+      const pages = await findHeadingPages(pdfBuffer, built.headings);
+      if (pages.size) {
+        built = await buildReport(reportInput, pages);
+        pdfBuffer = (await docxToPdf(built.buffer)) ?? pdfBuffer;
+      }
+    }
+    const docxBuffer = built.buffer;
     const uploaded = await this.upload.uploadRaw(docxBuffer, `${request.reference}.docx`, 'kosres/valuation/reports');
+    const uploadedPdf = pdfBuffer
+      ? await this.upload.uploadRaw(pdfBuffer, `${request.reference}.pdf`, 'kosres/valuation/reports')
+      : null;
 
     const existing = await this.reportRepo.findOne({ where: { reference: request.reference } });
     let report: ValuationReportEntity;
     if (existing) {
       existing.docxUrl = uploaded.secureUrl;
+      existing.pdfUrl = uploadedPdf?.secureUrl ?? (null as any);
       existing.generatedById = actorId;
       report = await this.reportRepo.save(existing);
     } else {
@@ -118,6 +136,7 @@ export class ReportsService {
         request: { id: requestId } as any,
         reference: request.reference,
         docxUrl: uploaded.secureUrl,
+        pdfUrl: uploadedPdf?.secureUrl,
         generatedById: actorId,
       }));
     }

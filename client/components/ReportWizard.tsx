@@ -164,9 +164,6 @@ export function ReportWizard({
     setBusy(false)
   }
 
-  const link = report?.docxUrl || report?.pdfUrl
-  const ext = report?.docxUrl ? "docx" : "pdf"
-
   const fileSlot = (id: string, label: string, url: string, set: (u: string) => void, note?: string) => (
     <div className="rounded-lg border border-border p-3">
       <div className="flex items-center justify-between gap-2">
@@ -212,14 +209,27 @@ export function ReportWizard({
       </div>
       {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
 
-      {report && link && (
-        <a href={link} target="_blank" rel="noopener noreferrer"
-          className="mb-2 flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-muted">
-          <span className="font-mono">{report.reference}.{ext}</span>
-          <span className="text-[oklch(0.42_0.19_25)]">Download ↓</span>
-        </a>
+      {report && (report.pdfUrl || report.docxUrl) && (
+        <div className="mb-2 space-y-1.5">
+          {report.pdfUrl && (
+            <a href={report.pdfUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-muted">
+              <span className="font-mono">{report.reference}.pdf</span>
+              <span className="text-[oklch(0.42_0.19_25)]">Download PDF ↓</span>
+            </a>
+          )}
+          {report.docxUrl && (
+            <a href={report.docxUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-muted">
+              <span className="font-mono">{report.reference}.docx</span>
+              <span className="text-[oklch(0.42_0.19_25)]">Download Word ↓</span>
+            </a>
+          )}
+          {report.docxUrl && !report.pdfUrl && (
+            <p className="text-[11px] text-amber-700">PDF is not available on this server yet (LibreOffice is not installed) — download the Word file and save as PDF from Word.</p>
+          )}
+        </div>
       )}
-      {report?.docxUrl && <p className="mb-2 text-[11px] text-muted-foreground">Open in Word and press F9 (or accept “update fields”) so the table of contents shows page numbers.</p>}
 
       {(status === "valuer_final_review" || report) && !open && (
         <button onClick={() => { setOpen(true); setStep(0) }} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[oklch(0.42_0.19_25)] py-2.5 text-sm font-semibold text-white hover:bg-[oklch(0.36_0.18_25)]">
@@ -334,7 +344,7 @@ export function ReportWizard({
               </button>
             ) : (
               <button type="button" onClick={generate} disabled={busy || !!uploading} className="flex items-center gap-1 rounded-lg bg-[oklch(0.42_0.19_25)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                {busy ? <Loader2 size={13} className="animate-spin" /> : <FileText size={14} />} Generate Word report
+                {busy ? <Loader2 size={13} className="animate-spin" /> : <FileText size={14} />} Generate report
               </button>
             )}
           </div>

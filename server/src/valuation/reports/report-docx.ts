@@ -12,7 +12,7 @@
 import {
   AlignmentType, BorderStyle, Document, ExternalHyperlink, Footer, Header, HeadingLevel,
   ImageRun, LevelFormat, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell,
-  TableOfContents, TableRow, TextRun, VerticalAlign, WidthType,
+  TableOfContents, TableRow, TextRun, VerticalAlign, WidthType, TabStopType, LeaderType,
 } from 'docx';
 import { imageSize } from 'image-size';
 import {
@@ -198,18 +198,18 @@ const body = (text: string | TextRun[], o: { align?: any; after?: number; bold?:
 const bullet = (text: string) =>
   new Paragraph({ numbering: { reference: 'bullets', level: 0 }, spacing: { after: 40 }, children: [new TextRun({ text, font: FONT, size: 22 })] });
 
-const sectionHeading = (text: string, pageBreak = false) =>
-  new Paragraph({
+/** Headings in document order, collected while building so a static TOC can be produced. */
+let HEADINGS: { text: string; level: 1 | 2 }[] = [];
+const sectionHeading = (text: string, pageBreak = false) => (HEADINGS.push({ text, level: 1 }), new Paragraph({
     heading: HeadingLevel.HEADING_1, pageBreakBefore: pageBreak, keepNext: true,
     spacing: { before: 240, after: 120 },
     children: [new TextRun({ text, font: FONT, bold: true, size: 24, color: GREEN })],
-  });
+  }));
 
-const labelPara = (text: string) =>
-  new Paragraph({
+const labelPara = (text: string) => (HEADINGS.push({ text, level: 2 }), new Paragraph({
     heading: HeadingLevel.HEADING_2, spacing: { after: 60 },
     children: [new TextRun({ text, font: FONT, bold: true, size: 20, color: BLUE })],
-  });
+  }));
 
 const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 const NO_BORDERS = { top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: NO_BORDER };
@@ -252,8 +252,20 @@ function findZoning(text?: string | null): ZoningCategory | null {
 }
 
 // ── Main ───────────────────────────────────────────────────────────────
+export type ReportBuild = { buffer: Buffer; headings: { text: string; level: 1 | 2 }[] };
+
 export async function buildReportDocx(input: ReportInput): Promise<Buffer> {
+  return (await buildReport(input)).buffer;
+}
+
+/**
+ * @param tocPages heading text -> page number. When supplied, the table of
+ * contents is written as plain text with page numbers (works in any viewer);
+ * otherwise a Word TOC field is used, which Word fills in on open.
+ */
+export async function buildReport(input: ReportInput, tocPages?: Map<string, number>): Promise<ReportBuild> {
   imgCache.clear();
+  HEADINGS = [];
   const p = input.property;
   const loc = p.location ?? null;
   const land = p.land ?? null;
@@ -357,10 +369,19 @@ export async function buildReportDocx(input: ReportInput): Promise<Buffer> {
   letter.push(new Paragraph({ children: [new TextRun({ text: 'Email: ', font: FONT, size: 22 }), new ExternalHyperlink({ link: 'mailto:kosresltd@gmail.com', children: [new TextRun({ text: 'kosresltd@gmail.com', font: FONT, size: 22, color: BLUE, underline: {} })] })] }));
 
   // ═══ Table of contents ═══
-  const toc: (Paragraph | Table | TableOfContents)[] = [
-    new Paragraph({ pageBreakBefore: true, spacing: { after: 160 }, children: [new TextRun({ text: 'TABLE OF CONTENTS', font: FONT, bold: true, size: 24, color: GREEN, underline: {} })] }),
-    new TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-2' }),
-  ];
+  const makeToc = (): (Paragraph | Table | TableOfContents)[] => {
+    const head = new Paragraph({ pageBreakBefore: true, spacing: { after: 160 }, children: [new TextRun({ text: 'TABLE OF CONTENTS', font: FONT, bold: true, size: 24, color: GREEN, underline: {} })] });
+    if (!tocPages) return [head, new TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-2' })];
+    const lines = HEADINGS.map((h) => new Paragraph({
+      tabStops: [{ type: TabStopType.RIGHT, position: CONTENT_W, leader: LeaderType.DOT }],
+      indent: { left: h.level === 2 ? 360 : 0 }, spacing: { after: 20 },
+      children: [
+        new TextRun({ text: h.text, font: FONT, size: h.level === 1 ? 20 : 18, bold: h.level === 1 }),
+        new TextRun({ text: `\t${tocPages.get(h.text) ?? ''}`, font: FONT, size: h.level === 1 ? 20 : 18 }),
+      ],
+    }));
+    return [head, ...lines];
+  };
 
   // ═══ Executive summary ═══
   const exCell = (children: Paragraph[], w: number, o: { shade?: string; span?: number; rowSpan?: number } = {}) =>
@@ -430,7 +451,7 @@ export async function buildReportDocx(input: ReportInput): Promise<Buffer> {
   if (remarks) exRows.push(new TableRow({ children: [exCell([ep('GENERAL REMARKS', { bold: true, italics: true })], LW), exCell(remarks.split(/\n+/).map((t) => ep(t)), VW)] }));
 
   const exec: (Paragraph | Table)[] = [
-    new Paragraph({ heading: HeadingLevel.HEADING_1, pageBreakBefore: true, spacing: { after: 120 }, children: [new TextRun({ text: 'EXECUTIVE SUMMARY', font: FONT, bold: true, size: 24, color: GREEN })] }),
+    (HEADINGS.push({ text: 'EXECUTIVE SUMMARY', level: 1 }), new Paragraph({ heading: HeadingLevel.HEADING_1, pageBreakBefore: true, spacing: { after: 120 }, children: [new TextRun({ text: 'EXECUTIVE SUMMARY', font: FONT, bold: true, size: 24, color: GREEN })] })),
     body('This executive summary is a brief overview of our valuation report and must not be relied upon isolation. It is intended to be read in conjunction with the whole report and is subject to any assumptions and comments stated within the body of this report.', { size: 20, italics: true }),
     new Table({ width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: [LW, VW], rows: exRows }),
   ];
@@ -664,6 +685,7 @@ export async function buildReportDocx(input: ReportInput): Promise<Buffer> {
   analysis.push(new Table({ width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: aw, rows: aRows }));
 
   // ═══ Appendices ═══
+  HEADINGS.push({ text: 'APPENDICES', level: 1 });
   const appendices: (Paragraph | Table)[] = [new Paragraph({ pageBreakBefore: true, heading: HeadingLevel.HEADING_1, spacing: { before: 3000 }, children: [new TextRun({ text: 'APPENDICES', font: FONT, size: 96 })] })];
   const appendixUrls = [...(input.extras.appendixUrls ?? [])];
   for (let i = 0; i < appendixUrls.length; i++) {
@@ -708,9 +730,9 @@ export async function buildReportDocx(input: ReportInput): Promise<Buffer> {
       { properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 720, bottom: 720, left: 1440, right: 1440 } } }, children: [coverTable] },
       {
         properties: { page: page({ top: 1700, bottom: 1500 }) }, headers: { default: header }, footers: { default: footer },
-        children: [...titleChildren, ...letter, ...toc, ...exec, ...terms, ...features, ...desc, ...valuation, ...imgSection, ...cert, ...analysis, ...appendices],
+        children: [...titleChildren, ...letter, ...makeToc(), ...exec, ...terms, ...features, ...desc, ...valuation, ...imgSection, ...cert, ...analysis, ...appendices],
       },
     ],
   });
-  return Packer.toBuffer(doc);
+  return { buffer: await Packer.toBuffer(doc), headings: HEADINGS.slice() };
 }
