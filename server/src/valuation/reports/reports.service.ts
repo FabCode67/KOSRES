@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ValuationProperty } from '../entities/valuation-property.entity';
 import { buildReport, ReportInput } from './report-docx';
 import { docxToPdf, findHeadingPages } from './docx-to-pdf.util';
+import { BASES_OF_VALUE, VALUATION_APPROACHES, VALUATION_ASSUMPTIONS } from './reference-data';
 import { ValuationReportEntity } from '../entities/valuation-report.entity';
 import { ValuationApproval } from '../entities/valuation-approval.entity';
 import { ValuationRequestsService } from '../requests/valuation-requests.service';
@@ -29,6 +30,29 @@ export class ReportsService {
   }
 
   /**
+   * Options the valuer can choose from (bases of value, approaches, assumptions) plus the
+   * sensible defaults for this request, so the report wizard can pre-select them.
+   */
+  async getReference(requestId: string) {
+    const request: any = await this.requestsService.findOne(requestId);
+    const calc = [...(request.calculations ?? [])].sort(
+      (a: any, b: any) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime(),
+    ).pop();
+    const engine = calc?.engineVersion?.engine?.code ?? request.engineVersion?.engine?.code ?? 'COST_APPROACH';
+    const hasForcedSale = (request.results ?? []).some((r: any) => r.basis === 'forced_sale');
+    return {
+      bases: BASES_OF_VALUE,
+      approaches: VALUATION_APPROACHES,
+      assumptions: VALUATION_ASSUMPTIONS,
+      defaults: {
+        bases: ['MARKET VALUE', ...(hasForcedSale ? ['LIQUIDATION VALUE'] : [])],
+        approaches: [engine === 'COST_APPROACH' ? 'COST APPROACH' : engine === 'INCOME_APPROACH' ? 'INCOME APPROACH' : 'MARKET APPROACH'],
+        assumptions: VALUATION_ASSUMPTIONS.map((a) => a.name),
+      },
+    };
+  }
+
+  /**
    * Generates the PDF from the request's current property data + latest
    * calculation, uploads it, records a ValuationReport row, and advances
    * the workflow to DRAFT_REPORT (from VALUER_FINAL_REVIEW).
@@ -44,6 +68,8 @@ export class ReportsService {
       planningZoneMapUrl?: string;
       appendixUrls?: string[];
       logoUrl?: string;
+      landTitleUrls?: string[];
+      selection?: { bases?: string[]; approaches?: string[]; assumptions?: string[] };
     } = {},
   ) {
     const request: any = await this.requestsService.findOne(requestId);
@@ -104,6 +130,8 @@ export class ReportsService {
         planningZoneMapUrl: opts.planningZoneMapUrl,
         appendixUrls: opts.appendixUrls,
         logoUrl: opts.logoUrl,
+        landTitleUrls: opts.landTitleUrls,
+        selection: opts.selection,
       },
     };
 

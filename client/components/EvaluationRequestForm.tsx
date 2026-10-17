@@ -24,7 +24,7 @@ const PURPOSE_OPTIONS: { value: string; label: string }[] = [
 ]
 
 const PROPERTY_TYPE_OPTIONS = [
-  "Residential — House", "Residential — Apartment", "Commercial", "Industrial", "Land only (undeveloped)", "Mixed-use", "Other",
+  "Residential — House", "Residential — Apartment", "Commercial", "Industrial", "Vacant plot (undeveloped)", "Mixed-use", "Other",
 ]
 
 /**

@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react"
 import { AlertCircle, Check, ChevronLeft, ChevronRight, FileText, Loader2, X } from "lucide-react"
 import {
-  generateReport, updatePropertyDetails, updatePropertyLocation, updatePropertyLand, updateBuilding,
+  generateReport, getReportReference, updatePropertyDetails, updatePropertyLocation, updatePropertyLand, updateBuilding,
   updateRequestDetails, uploadPropertyPictures, uploadLandTitleDocuments,
 } from "@/lib/valuation-api"
-import type { ValuationPropertyDetail, ValuationReport } from "@/lib/valuation-api"
+import type { ValuationPropertyDetail, ValuationReport, ReportReference } from "@/lib/valuation-api"
 
 type Field = {
   key: string
@@ -20,7 +20,7 @@ type Field = {
   required?: boolean
 }
 
-const STEPS = ["Parties & title", "Location & land", "Buildings", "Maps, plans & logo", "Review & generate"]
+const STEPS = ["Parties & title", "Location & land", "Buildings", "Maps, plans & logo", "Basis & methodology", "Review & generate"]
 
 const inp = "w-full rounded-md border border-border bg-white px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[oklch(0.42_0.19_25)/25]"
 const str = (v: unknown) => (v == null ? "" : String(v))
@@ -53,8 +53,16 @@ export function ReportWizard({
   const [planningZoneMapUrl, setPlanningZoneMapUrl] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
   const [appendixUrls, setAppendixUrls] = useState<string[]>([])
+  // Land title documents: starts with any already supplied on the client's request, editable here.
+  const [ref, setRef] = useState<ReportReference | null>(null)
+  const [selBases, setSelBases] = useState<string[]>([])
+  const [selApproaches, setSelApproaches] = useState<string[]>([])
+  const [selAssumptions, setSelAssumptions] = useState<string[]>([])
+  const [titleUrls, setTitleUrls] = useState<string[] | null>(null)
 
   const p = property
+  const existingTitles = (p?.documents ?? []).filter((d) => d.type === "land_title").map((d) => d.url)
+  const landTitles = titleUrls ?? existingTitles
   const fieldsByStep: Field[][] = useMemo(() => [
     [
       { key: "instructor", label: "Instructor (who instructed the valuation)", target: "request", value: str(request.instructor), required: true },
@@ -76,6 +84,7 @@ export function ReportWizard({
       { key: "zoning", label: "Zoning (code, e.g. R1A)", target: "land", value: str(p?.land?.zoning), required: true },
       { key: "currentUse", label: "Current use", hint: "e.g. Residential", target: "land", value: str(p?.land?.currentUse) },
     ],
+    [],
     [],
     [],
     [],
@@ -128,6 +137,13 @@ export function ReportWizard({
     try { const [url] = await uploadPropertyPictures([file]); set(url) } catch (e: any) { setError(e.message || "Upload failed") }
     setUploading("")
   }
+  const uploadTitles = async (files: FileList | null) => {
+    if (!files?.length) return
+    setUploading("title"); setError("")
+    try { const urls = await uploadLandTitleDocuments(Array.from(files)); setTitleUrls([...landTitles, ...urls]) }
+    catch (e: any) { setError(e.message || "Upload failed") }
+    setUploading("")
+  }
   const uploadAppendices = async (files: FileList | null) => {
     if (!files?.length) return
     setUploading("appendix"); setError("")
@@ -146,9 +162,21 @@ export function ReportWizard({
   })
   if (!p?.buildings?.length) gaps.push({ step: 2, text: "No buildings recorded", level: "optional" })
   if (!p?.images?.length) gaps.push({ step: 3, text: "No customer property photos on the request", level: "optional" })
+  if (!landTitles.length) gaps.push({ step: 3, text: "Land title documents", level: "optional" })
   if (!locationMapUrl) gaps.push({ step: 3, text: "Location map", level: "optional" })
   if (!cadastralPlanUrl) gaps.push({ step: 3, text: "Cadastral parcel plan", level: "optional" })
   if (!planningZoneMapUrl) gaps.push({ step: 3, text: "Planning zone map", level: "optional" })
+
+  const openWizard = async () => {
+    setOpen(true); setStep(0)
+    if (ref) return
+    try {
+      const r = await getReportReference(token, requestId)
+      setRef(r); setSelBases(r.defaults.bases); setSelApproaches(r.defaults.approaches); setSelAssumptions(r.defaults.assumptions)
+    } catch (e: any) { setError(e?.message || "Could not load valuation bases and methodology") }
+  }
+  const toggle = (list: string[], set: (v: string[]) => void, name: string) =>
+    set(list.includes(name) ? list.filter((x) => x !== name) : [...list, name])
 
   const generate = async () => {
     setBusy(true); setError("")
@@ -158,6 +186,8 @@ export function ReportWizard({
         locationMapUrl: locationMapUrl || undefined, cadastralPlanUrl: cadastralPlanUrl || undefined,
         planningZoneMapUrl: planningZoneMapUrl || undefined, logoUrl: logoUrl || undefined,
         appendixUrls: appendixUrls.length ? appendixUrls : undefined,
+        landTitleUrls: landTitles.length ? landTitles : undefined,
+        selection: ref ? { bases: selBases, approaches: selApproaches, assumptions: selAssumptions } : undefined,
       })
       setOpen(false); setStep(0); onChanged()
     } catch (e: any) { setError(e.message || "Failed to generate report") }
@@ -232,7 +262,7 @@ export function ReportWizard({
       )}
 
       {(status === "valuer_final_review" || report) && !open && (
-        <button onClick={() => { setOpen(true); setStep(0) }} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[oklch(0.42_0.19_25)] py-2.5 text-sm font-semibold text-white hover:bg-[oklch(0.36_0.18_25)]">
+        <button onClick={() => { openWizard() }} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[oklch(0.42_0.19_25)] py-2.5 text-sm font-semibold text-white hover:bg-[oklch(0.36_0.18_25)]">
           <FileText size={14} /> {report ? "Regenerate report" : "Prepare report"}
         </button>
       )}
@@ -294,6 +324,20 @@ export function ReportWizard({
               {fileSlot("logo", "Company logo", logoUrl, setLogoUrl, "Optional — the current KOSRES logo is used unless you upload another")}
               <div className="rounded-lg border border-border p-3 text-xs">
                 <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-slate-700">Land title documents <span className="text-[11px] font-normal text-muted-foreground">(title deed / certificate — scans or PDFs)</span></span>
+                  {uploading === "title" && <Loader2 size={12} className="animate-spin" />}
+                  <input type="file" multiple accept="image/*,.pdf,.doc,.docx" className="max-w-[190px] text-[11px]" onChange={(e) => { uploadTitles(e.target.files); e.target.value = "" }} />
+                </div>
+                {existingTitles.length > 0 && <p className="mt-1 text-[11px] text-muted-foreground">{existingTitles.length} already supplied with the client's request are included below.</p>}
+                {landTitles.map((u, i) => (
+                  <div key={u} className="mt-1 flex items-center justify-between rounded border border-border px-2 py-1">
+                    <a href={u} target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline">Land title document {i + 1}</a>
+                    <button type="button" onClick={() => setTitleUrls(landTitles.filter((y) => y !== u))} className="text-red-600"><X size={12} /></button>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-lg border border-border p-3 text-xs">
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold text-slate-700">Appendices <span className="text-[11px] font-normal text-muted-foreground">(images / PDFs, in order)</span></span>
                   {uploading === "appendix" && <Loader2 size={12} className="animate-spin" />}
                   <input type="file" multiple accept="image/*,.pdf,.doc,.docx" className="max-w-[190px] text-[11px]" onChange={(e) => { uploadAppendices(e.target.files); e.target.value = "" }} />
@@ -309,6 +353,33 @@ export function ReportWizard({
           )}
 
           {step === 4 && (
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">Choose the bases of value, valuation approaches and assumptions to state in the report. Defaults are pre-selected for this valuation; their definitions are printed in the Valuation section.</p>
+              {!ref && <p className="flex items-center gap-1 text-xs text-muted-foreground"><Loader2 size={12} className="animate-spin" /> Loading options…</p>}
+              {ref && ([
+                ["Bases of value", ref.bases, selBases, setSelBases],
+                ["Valuation approaches (methodology)", ref.approaches, selApproaches, setSelApproaches],
+                ["Assumptions", ref.assumptions, selAssumptions, setSelAssumptions],
+              ] as const).map(([title, items, selected, setSelected]) => (
+                <div key={title}>
+                  <p className="mb-1 text-xs font-bold text-slate-700">{title}</p>
+                  <div className="space-y-1.5">
+                    {items.map((it) => (
+                      <label key={it.name} className={`flex cursor-pointer gap-2 rounded-lg border p-2 text-xs ${selected.includes(it.name) ? "border-[oklch(0.42_0.19_25)] bg-red-50/40" : "border-border"}`}>
+                        <input type="checkbox" className="mt-0.5" checked={selected.includes(it.name)} onChange={() => toggle(selected, setSelected, it.name)} />
+                        <span>
+                          <span className="font-semibold text-slate-800">{it.name}</span>
+                          <span className="mt-0.5 line-clamp-3 block text-[11px] text-muted-foreground">{it.description}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {step === 5 && (
             <div className="space-y-3">
               <label className="block text-xs font-semibold text-slate-700">Valuation date <span className="font-normal text-muted-foreground">(blank = sign-off date, else today)</span>
                 <input type="date" value={valuationDate} onChange={(e) => setValuationDate(e.target.value)} className={`${inp} mt-1`} />

@@ -93,6 +93,7 @@ export interface ValuationPropertyDetail {
   restrictionsStatus?: string
   processStatus?: string
   images?: { id: string; url: string; description?: string }[]
+  documents?: { id: string; type: string; url: string }[]
   location?: {
     province?: string; district?: string; sector?: string; cell?: string; village?: string
     accessibility?: string; neighborhoodQuality?: string; distanceToCbdKm?: number
@@ -175,7 +176,8 @@ export interface ValuationBuilding {
 export interface ValuationReport { id: string; reference: string; pdfUrl?: string; docxUrl?: string; generatedAt: string }
 export interface GenerateReportOptions {
   valuationDate?: string; generalRemarks?: string
-  locationMapUrl?: string; cadastralPlanUrl?: string; planningZoneMapUrl?: string; appendixUrls?: string[]; logoUrl?: string
+  locationMapUrl?: string; cadastralPlanUrl?: string; planningZoneMapUrl?: string; appendixUrls?: string[]; logoUrl?: string; landTitleUrls?: string[]
+  selection?: { bases?: string[]; approaches?: string[]; assumptions?: string[] }
 }
 export function generateReport(token: string, requestId: string, body: GenerateReportOptions = {}) {
   return jsonFetch<ValuationReport>(`/valuation/requests/${requestId}/report`, token, { method: "POST", body: JSON.stringify(body) })
@@ -477,4 +479,14 @@ export function updatePropertyDetails(token: string, propertyId: string, data: a
 }
 export function updateRequestDetails(token: string, requestId: string, data: { beneficiary?: string; instructor?: string }) {
   return jsonFetch(`/valuation/requests/${requestId}/details`, token, { method: "PATCH", body: JSON.stringify(data) })
+}
+
+export interface ReportReference {
+  bases: { name: string; description: string }[]
+  approaches: { name: string; description: string }[]
+  assumptions: { name: string; description: string }[]
+  defaults: { bases: string[]; approaches: string[]; assumptions: string[] }
+}
+export function getReportReference(token: string, requestId: string) {
+  return jsonFetch<ReportReference>(`/valuation/requests/${requestId}/report/reference`, token)
 }

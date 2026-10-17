@@ -8,6 +8,12 @@ import { requireRoles } from '../require-roles.util';
 export class ReportsController {
   constructor(private service: ReportsService) {}
 
+  @Get('reference')
+  getReference(@Request() req: any, @Param('requestId') requestId: string) {
+    requireRoles(req, ['admin', 'valuer', 'technician']);
+    return this.service.getReference(requestId);
+  }
+
   @Get()
   async getLatest(@Request() req: any, @Param('requestId') requestId: string) {
     requireRoles(req, ['admin', 'valuer', 'technician']);

@@ -12,6 +12,14 @@ export class ComparableProperty {
   @Column({ nullable: true }) district: string;
   @Column({ nullable: true }) sector: string;
   @Column({ nullable: true }) cell: string;
+  @Column({ nullable: true }) village: string;
+  @Column({ nullable: true }) upi: string;
+
+  @Column({ name: 'property_subtype', nullable: true }) propertySubtype: string;
+  @Column({ type: 'text', nullable: true }) accommodation: string;
+
+  // Grading attributes from the source database, e.g. { qualityGrade: 3, accommodationGrade: 2 } or { neighborhoodGrade, utilities, amenitiesNearby }
+  @Column({ type: 'jsonb', nullable: true }) attributes: Record<string, unknown>;
 
   @Column({ name: 'property_category', type: 'enum', enum: PropertyCategory, nullable: true })
   propertyCategory: PropertyCategory;

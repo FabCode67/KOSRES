@@ -31,7 +31,7 @@ function guessPropertyCategory(typeOfProperty: string): PropertyCategory {
   if (t.includes('commercial') || t.includes('office') || t.includes('shop') || t.includes('retail')) return PropertyCategory.COMMERCIAL;
   if (t.includes('industrial') || t.includes('warehouse') || t.includes('factory')) return PropertyCategory.INDUSTRIAL;
   if (t.includes('agri') || t.includes('farm')) return PropertyCategory.AGRICULTURAL;
-  if (t.includes('land') && !t.includes('building')) return PropertyCategory.LAND;
+  if ((t.includes('land') || t.includes('vacant') || t.includes('plot')) && !t.includes('building')) return PropertyCategory.LAND;
   if (t.includes('special') || t.includes('institution') || t.includes('school') || t.includes('church') || t.includes('hospital')) return PropertyCategory.SPECIAL_PURPOSE;
   return PropertyCategory.RESIDENTIAL;
 }

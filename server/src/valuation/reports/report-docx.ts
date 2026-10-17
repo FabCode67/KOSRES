@@ -16,7 +16,7 @@ import {
 } from 'docx';
 import { imageSize } from 'image-size';
 import {
-  BASES_OF_VALUE, VALUATION_APPROACHES, VALUATION_ASSUMPTIONS, ZONING_CATEGORIES, ZoningCategory,
+  BASES_OF_VALUE, VALUATION_APPROACHES, VALUATION_ASSUMPTIONS, ZONING_CATEGORIES, ZoningCategory, NamedText,
 } from './reference-data';
 import { LOGO_PNG_BASE64, STAMP_JPG_BASE64 } from './report-assets';
 
@@ -69,6 +69,8 @@ export type ReportInput = {
     cadastralPlanUrl?: string;
     planningZoneMapUrl?: string;
     appendixUrls?: string[];
+    selection?: { bases?: string[]; approaches?: string[]; assumptions?: string[] }; // names chosen by the valuer
+    landTitleUrls?: string[];        // scanned title deed / certificate pages
     logoUrl?: string;                // optional replacement for the built-in KOSRES logo
     generalRemarks?: string;
   };
@@ -274,7 +276,12 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
   const market = results.find((r) => r.basis === 'market');
   const fsv = results.find((r) => r.basis === 'forced_sale');
   const ins = results.find((r) => r.basis === 'insurance');
-  const subtype = clean(p.propertySubtype) || cap(clean(p.propertyCategory) || 'property');
+  const rawSubtype = clean(p.propertySubtype) || cap(clean(p.propertyCategory) || 'property');
+  // Undeveloped land is described as a "vacant plot" throughout the report.
+  const isVacant = clean(p.propertyCategory).toLowerCase() === 'land' || /^(land\b|vacant|undeveloped)/i.test(rawSubtype);
+  const subtype = isVacant ? 'Vacant plot' : rawSubtype;
+  const propNoun = isVacant ? 'vacant plot' : `${subtype} property`;
+  const PropNoun = cap(propNoun);
   const tenure = clean(p.tenure);
   const instructor = clean(input.instructor) || clean(input.beneficiary) || 'the Client';
   const locText = locationLine(loc);
@@ -339,7 +346,7 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
     alignment: AlignmentType.CENTER, spacing: { after: 240 },
     children: [new TextRun({
       font: FONT, bold: true, size: 22,
-      text: `A ${subtype} property${plotNo ? ` with plot No.${plotNo}` : ''}${upi ? `, UPI No. ${upi}` : ''}${locText ? ` situated at ${locText}` : ''}.`,
+      text: `A ${PropNoun}${plotNo ? ` with plot No.${plotNo}` : ''}${upi ? `, UPI No. ${upi}` : ''}${locText ? ` situated at ${locText}` : ''}.`,
     })],
   }));
   if (coverImgs[0]) titleChildren.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [imageRun(coverImgs[0], 560, 330)] }));
@@ -351,12 +358,12 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
   // ═══ Cover letter ═══
   const letter: (Paragraph | Table)[] = [
     new Paragraph({ pageBreakBefore: true, spacing: { after: 240 }, children: [new TextRun({ text: 'To: ', font: FONT, size: 22 }), new TextRun({ text: instructor.toUpperCase(), font: FONT, size: 22 })] }),
-    new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: `Subject: Valuation Report for A ${subtype} property`, font: FONT, size: 22, bold: true, color: GREEN, underline: {} })] }),
+    new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: `Subject: Valuation Report for A ${PropNoun}`, font: FONT, size: 22, bold: true, color: GREEN, underline: {} })] }),
     body('Dear Madam,', { align: AlignmentType.LEFT, after: 160 }),
     body([
       new TextRun({ text: 'With your reference to your request and approval dated on ', font: FONT, size: 22 }),
       ...dateRuns(input.engagementDate, { size: 22 }),
-      new TextRun({ text: ` to conduct valuation service of a ${subtype} property located at ${locText || 'the property described herein'}. Please find hereafter our detailed valuation report including other information related to the mentioned property.`, font: FONT, size: 22 }),
+      new TextRun({ text: ` to conduct valuation service of a ${propNoun} located at ${locText || 'the property described herein'}. Please find hereafter our detailed valuation report including other information related to the mentioned property.`, font: FONT, size: 22 }),
     ]),
     body('Issued without prejudice and liabilities', { align: AlignmentType.LEFT, before: 120, after: 120 }),
     body('KIGALI ONE STOP REAL ESTATE SERVICE /KOSRES LTD', { align: AlignmentType.LEFT, after: 60 }),
@@ -426,7 +433,7 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
     exRows.push(exRow('Improvements', imp));
   }
   exRows.push(exRow('Valuation Date', [dateText(input.valuationDate)]));
-  exRows.push(exRow('Valuation Approach', [APPROACH_LABEL[engine] ?? engine]));
+  exRows.push(exRow('Valuation Approach', [input.extras.selection?.approaches?.length ? input.extras.selection.approaches.map((n) => n.toLowerCase().replace(/\b(\w)/g, (m) => m.toUpperCase())).join(' & ') : (APPROACH_LABEL[engine] ?? engine)]));
   if (clean(p.occupancyStatus)) exRows.push(exRow('Occupancy Status', [clean(p.occupancyStatus)]));
   exRows.push(exRow('Valuation Purpose', [`${purposeLabel} purpose`]));
   exRows.push(exRow('Prepared For', [instructor]));
@@ -461,7 +468,7 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
   const terms: (Paragraph | Table)[] = [
     sectionHeading('TERMS OF ENGAGEMENT', true),
     kvTable([
-      { label: 'Engagement:', content: [body([new TextRun({ text: 'We refer to our communication dated ', font: FONT, size: 22 }), ...dateRuns(input.engagementDate, { size: 22 }), new TextRun({ text: ` to provide a valuation report on a ${subtype} property${clean(input.beneficiary) ? ` to be used by ${clean(input.beneficiary)}` : ''}.`, font: FONT, size: 22 })])] },
+      { label: 'Engagement:', content: [body([new TextRun({ text: 'We refer to our communication dated ', font: FONT, size: 22 }), ...dateRuns(input.engagementDate, { size: 22 }), new TextRun({ text: ` to provide a valuation report on a ${propNoun}${clean(input.beneficiary) ? ` to be used by ${clean(input.beneficiary)}` : ''}.`, font: FONT, size: 22 })])] },
       { label: 'Client instructions:', content: [body(`We have been instructed to prepare the valuation by ${instructor}.`)] },
       { label: 'Valuation Standards:', content: [body('This valuation has been undertaken in accordance with RICS Valuation-professional standards 2014, which incorporate the IVSC international valuation standards 2022. As required by the Red Book, some key matters relating to this valuation are set out below.')] },
       { label: 'Independence of valuer:', content: [
@@ -578,20 +585,30 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
   }
 
   // ═══ Valuation ═══
-  const basisMarket = BASES_OF_VALUE.find((b) => /market value/i.test(b.name));
-  const basisLiq = BASES_OF_VALUE.find((b) => /liquidation/i.test(b.name));
-  const approachRef = VALUATION_APPROACHES.find((a) => (isCost ? /cost/i : engine === 'INCOME_APPROACH' ? /income/i : /market/i).test(a.name));
+  const sel = input.extras.selection;
+  const titleCase = (t: string) => t.toLowerCase().replace(/\b(\w)/g, (m) => m.toUpperCase());
+  const pick = (list: NamedText[], names: string[] | undefined, fallback: string[]) => {
+    const wanted = (names ?? fallback).map((n) => n.toUpperCase());
+    return list.filter((x) => wanted.includes(x.name.toUpperCase()));
+  };
+  const selBases = pick(BASES_OF_VALUE, sel?.bases, ['MARKET VALUE', ...(fsv ? ['LIQUIDATION VALUE'] : [])]);
+  const selApproaches = pick(VALUATION_APPROACHES, sel?.approaches, [isCost ? 'COST APPROACH' : engine === 'INCOME_APPROACH' ? 'INCOME APPROACH' : 'MARKET APPROACH']);
+  const selAssumptions = pick(VALUATION_ASSUMPTIONS, sel?.assumptions, VALUATION_ASSUMPTIONS.map((x) => x.name));
+  const costSelected = selApproaches.some((x) => /cost/i.test(x.name));
   const valRows: { label: string; content: (Paragraph | Table)[] }[] = [];
-  if (basisMarket) valRows.push({ label: 'Valuation bases:', content: [
-    body('Market Value is defined within RICS Valuation – Professional Standards as:'),
-    body(`“${basisMarket.description}”`),
-    ...(fsv && basisLiq ? [body('Forced Sale Value is assessed on the basis of Liquidation Value, defined as:'), body(`“${basisLiq.description}”`)] : []),
-  ] });
+  if (selBases.length) valRows.push({ label: 'Valuation bases:', content: selBases.flatMap((bs) => [
+    body(/liquidation/i.test(bs.name) && fsv
+      ? 'Forced Sale Value is assessed on the basis of Liquidation Value, defined as:'
+      : `${titleCase(bs.name)} is defined within RICS Valuation – Professional Standards as:`),
+    body(`“${bs.description}”`),
+  ]) });
   if (input.inspectionDate) valRows.push({ label: 'Inspection date:', content: [body([new TextRun({ text: 'The property was inspected on ', font: FONT, size: 22 }), ...dateRuns(input.inspectionDate, { size: 22 })])] });
   valRows.push({ label: 'Valuation date:', content: [body([new TextRun({ text: 'The valuation date is ', font: FONT, size: 22 }), ...dateRuns(input.valuationDate, { size: 22 })])] });
   const approachParas: Paragraph[] = [];
-  if (approachRef) approachParas.push(body(`${approachRef.name.replace(/\b(\w)(\w*)/g, (_m, a, b) => a + b.toLowerCase())} is defined within RICS International Valuation Standards – IVS, 2022 as:`), body(`“${approachRef.description}”`));
-  if (isCost) {
+  for (const ap of selApproaches) {
+    approachParas.push(body(`${titleCase(ap.name)} is defined within RICS International Valuation Standards – IVS, 2022 as:`), body(`“${ap.description}”`));
+  }
+  if (costSelected) {
     approachParas.push(
       body('In cost approach we evaluate the property being valued as two different assets; land and development.'),
       body('The land value is determined based on comparison method after considering factors affecting land value such as; location, plot shape, zoning, land size, quality of neighborhood, public amenities, infrastructures and current market price. Therefore, the reasonable price per square meter adopted is applied to the size of land to obtain land value.'),
@@ -599,9 +616,10 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
       body('The total cost to create an exact copy of development that is being valued is estimated and then we take into consideration the actual age, economic age, condition of development in order to calculate a proper depreciation rate which is applied to development cost to obtain depreciated replacement value. A developer’s profit based on actual completion of developments shall be added on the depreciated replacement cost to obtain development value. The development value is added on land value to obtain the open market value.'),
     );
   }
+
   if (approachParas.length) valRows.push({ label: 'Valuation Approach:', content: approachParas });
-  valRows.push({ label: 'Assumptions:', content: VALUATION_ASSUMPTIONS.map((a) => body(`“${a.description.replace(/\.?$/, '.')}”`)) });
-  if (isCost) valRows.push({ label: 'Valuation Disclaimer:', content: [
+  if (selAssumptions.length) valRows.push({ label: 'Assumptions:', content: selAssumptions.map((a) => body(`“${a.description.replace(/\.?$/, '.')}”`)) });
+  if (costSelected) valRows.push({ label: 'Valuation Disclaimer:', content: [
     body('Cost Approach is applied and afforded significant weight to purpose-built property which are rarely traded, does not generate income and when no available market data for the use of Market approach or Income approach.'),
     body('Such property includes but not limited to School, libraries, hospitals, museums, churches, mosques, community or town halls, police stations, towers.'),
     body('During our valuation analysis, we adopted cost approach because the available market data are not appropriate to arrive at a credible valuation. However, after obtaining a replacement value using cost approach, we have made sound judgement considering price and rent currently paid for similar properties, the rent within same neighborhood. Design, state of repair, level of finishing, Accessibility, Quality of neighborhood, Distance from central business district or shopping center, amenities such as schools, hospitals or health facilities and churches which directly have an impact on residential property values to establish our market value believed to be true and accurate.'),
@@ -685,16 +703,28 @@ export async function buildReport(input: ReportInput, tocPages?: Map<string, num
   analysis.push(new Table({ width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: aw, rows: aRows }));
 
   // ═══ Appendices ═══
-  HEADINGS.push({ text: 'APPENDICES', level: 1 });
-  const appendices: (Paragraph | Table)[] = [new Paragraph({ pageBreakBefore: true, heading: HeadingLevel.HEADING_1, spacing: { before: 3000 }, children: [new TextRun({ text: 'APPENDICES', font: FONT, size: 96 })] })];
-  const appendixUrls = [...(input.extras.appendixUrls ?? [])];
-  for (let i = 0; i < appendixUrls.length; i++) {
-    const img = await loadImage(appendixUrls[i]);
-    if (img) {
-      appendices.push(new Paragraph({ pageBreakBefore: true, alignment: AlignmentType.CENTER, children: [imageRun(img, 600, 800)] }));
-    } else {
-      appendices.push(new Paragraph({ pageBreakBefore: true, children: [new TextRun({ text: `Appendix ${i + 1}: `, font: FONT, size: 22, bold: true }), new ExternalHyperlink({ link: appendixUrls[i], children: [new TextRun({ text: appendixUrls[i], font: FONT, size: 20, color: BLUE, underline: {} })] })] }));
+  const appendices: (Paragraph | Table)[] = [];
+  const pushPages = async (urls: string[], label: string) => {
+    for (let i = 0; i < urls.length; i++) {
+      const img = await loadImage(urls[i]);
+      if (img) {
+        appendices.push(new Paragraph({ pageBreakBefore: true, alignment: AlignmentType.CENTER, children: [imageRun(img, 600, 800)] }));
+      } else {
+        appendices.push(new Paragraph({ pageBreakBefore: true, children: [new TextRun({ text: `${label} ${i + 1}: `, font: FONT, size: 22, bold: true }), new ExternalHyperlink({ link: urls[i], children: [new TextRun({ text: urls[i], font: FONT, size: 20, color: BLUE, underline: {} })] })] }));
+      }
     }
+  };
+  const titleUrls = [...(input.extras.landTitleUrls ?? [])];
+  const appendixUrls = [...(input.extras.appendixUrls ?? [])];
+  if (titleUrls.length) {
+    HEADINGS.push({ text: 'LAND TITLE DOCUMENTS', level: 1 });
+    appendices.push(new Paragraph({ pageBreakBefore: true, heading: HeadingLevel.HEADING_1, spacing: { before: 3000 }, children: [new TextRun({ text: 'LAND TITLE DOCUMENTS', font: FONT, size: 72 })] }));
+    await pushPages(titleUrls, 'Land title document');
+  }
+  if (appendixUrls.length || !titleUrls.length) {
+    HEADINGS.push({ text: 'APPENDICES', level: 1 });
+    appendices.push(new Paragraph({ pageBreakBefore: true, heading: HeadingLevel.HEADING_1, spacing: { before: 3000 }, children: [new TextRun({ text: 'APPENDICES', font: FONT, size: 96 })] }));
+    await pushPages(appendixUrls, 'Appendix');
   }
 
   // ═══ Header / footer ═══

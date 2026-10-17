@@ -56,7 +56,7 @@ const SUBTYPES_BY_CATEGORY: Record<string, string[]> = {
   commercial: ["Office", "Retail / Shop", "Commercial Building", "Warehouse", "Hotel"],
   industrial: ["Factory", "Warehouse", "Industrial Plot"],
   agricultural: ["Farm", "Plantation", "Agricultural Land"],
-  land: ["Residential Plot", "Commercial Plot", "Agricultural Plot"],
+  land: ["Vacant plot", "Vacant residential plot", "Vacant commercial plot", "Vacant agricultural plot"],
   special_purpose: ["School", "Hospital", "Church", "Government Building"],
 }
 const BUILDING_NAME_OPTIONS = ["Main house", "Annex I", "Annex II", "Boys' quarters", "Garage", "Store", "Guard house", "Detached kitchen"]
@@ -622,7 +622,7 @@ function PropertyIntakeCard({ token, requestId, onCreated }: { token: string; re
           <label className={lbl}>Category</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className={inp}>
             {["residential", "commercial", "industrial", "agricultural", "land", "special_purpose"].map((c) => (
-              <option key={c} value={c}>{c.replace(/_/g, " ")}</option>
+              <option key={c} value={c}>{c === "land" ? "vacant plot" : c.replace(/_/g, " ")}</option>
             ))}
           </select>
         </div>
