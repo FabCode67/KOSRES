@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    "KOSRES LTD is Rwanda's leading one-stop real estate company. Buy, sell, rent & invest in residential and commercial properties across Kigali and all 30 districts. RDB regulated. Call +250 781 209 709.",
+    "KOSRES LTD is Rwanda's leading one-stop real estate company. Buy, sell, rent & invest in residential and commercial properties across Kigali and all 30 districts. RDB regulated. Call +250 792 871 729.",
 
   keywords: [
     "KOSRES LTD",
@@ -171,7 +171,7 @@ export default function RootLayout({
               url: SITE_URL,
               logo: LOGO_URL,
               image: LOGO_URL,
-              telephone: "+250781209709",
+              telephone: "+250792871729",
               email: "kosresltd@gmail.com",
               address: {
                 "@type": "PostalAddress",

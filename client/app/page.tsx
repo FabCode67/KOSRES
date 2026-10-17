@@ -406,7 +406,7 @@ export default async function HomePage() {
           <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             {/* WhatsApp */}
             <a
-              href="https://wa.me/250781209709"
+              href="https://wa.me/250792871729"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-transparent p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#25D366] hover:shadow-lg"
@@ -423,7 +423,7 @@ export default async function HomePage() {
               <div className="text-center">
                 <p className="text-xs font-bold text-slate-800">WhatsApp</p>
                 <p className="mt-0.5 text-[10px] text-slate-500">
-                  +250 781 209 709
+                  +250 792 871 729
                 </p>
                 <p
                   className="mt-1 text-[10px] font-semibold"
@@ -594,14 +594,14 @@ export default async function HomePage() {
           </div>
           <div className="grid gap-5 text-center sm:grid-cols-2 lg:grid-cols-4">
             <a
-              href="https://wa.me/250781209709?text=Hello%20KOSRES%2C%20I%27d%20like%20to%20book%20a%20consultation."
+              href="https://wa.me/250792871729?text=Hello%20KOSRES%2C%20I%27d%20like%20to%20book%20a%20consultation."
               target="_blank"
               rel="noopener noreferrer"
               className="whatsapp-btn flex flex-col items-center gap-3 rounded-2xl p-7 transition-opacity hover:opacity-90"
             >
               <Phone size={28} />
               <p className="font-bold">WhatsApp Us</p>
-              <p className="text-sm text-white/80">+250 781 209 709</p>
+              <p className="text-sm text-white/80">+250 792 871 729</p>
             </a>
             <a
               href="mailto:kosresltd@gmail.com"

@@ -83,7 +83,7 @@ https://www.kosres.com/services/buy-sell-rent
 3. Add business:
    - Business name: KOSRES LTD
    - Category: Real Estate Agency
-   - Phone: +250 781 209 709
+   - Phone: +250 792 871 729
    - Website: https://www.kosres.com
    - Address: BEATITUDE HOUSE, 4th Floor, KN87 Street, Kigali, Rwanda
 4. Verify by phone or postcard

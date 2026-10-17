@@ -59,7 +59,7 @@ export function formatPriceCompact(
   return `${price} RWF${freq}`
 }
 
-export const WHATSAPP_NUMBER = "250781209709"
+export const WHATSAPP_NUMBER = "250792871729"
 export const INSTAGRAM_HANDLE = "kosresltd"
 export const FACEBOOK_PAGE = "kosresltd"
 
