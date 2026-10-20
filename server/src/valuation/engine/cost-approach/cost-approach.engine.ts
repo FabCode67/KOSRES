@@ -141,7 +141,8 @@ export class CostApproachEngine implements ValuationEngine<CostApproachInputs> {
     const errors: string[] = [];
     if (!inputs.landAreaSqm || inputs.landAreaSqm <= 0) errors.push('landAreaSqm must be > 0');
     if (!inputs.adoptedLandRatePerSqm || inputs.adoptedLandRatePerSqm <= 0) errors.push('adoptedLandRatePerSqm must be > 0');
-    if (!inputs.buildingComponents?.length) errors.push('At least one building component is required');
+    // A vacant plot has no building components: only the land value is produced.
+    if (!Array.isArray(inputs.buildingComponents)) errors.push('buildingComponents must be an array (empty for a vacant plot)');
     inputs.buildingComponents?.forEach((c, i) => {
       if (!c.areaSqm || c.areaSqm <= 0) errors.push(`buildingComponents[${i}].areaSqm must be > 0`);
       if (!c.adoptedRatePerSqm || c.adoptedRatePerSqm <= 0) errors.push(`buildingComponents[${i}].adoptedRatePerSqm must be > 0`);

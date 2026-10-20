@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
@@ -13,7 +13,7 @@ import {
   getRequest, getPropertyByRequest, createProperty, updatePropertyLocation, updatePropertyLand,
   addBuilding, updateBuilding, removeBuilding, addExternalWork, uploadPropertyPictures, uploadLandTitleDocuments, getRateTables, getCalculationRules,
   getActiveEngineVersion, selectEngine, runCostApproach, transitionRequest,
-  approveRequest, addAdjustment, generateReport, getReport,
+  approveRequest, fastTrackRequest, addAdjustment, generateReport, getReport,
   getComparables, getSelectionsForRequest, addComparableSelection, updateComparableSelection, removeComparableSelection, runSalesComparison,
   runIncomeApproach, getAssignableUsers, createInspection, runAvs, addService, addAmenity, lookupCadastralByUpi,
 } from "@/lib/valuation-api"
@@ -157,6 +157,23 @@ export default function ValuationRequestDetailPage() {
       setRules({ depreciation: dep.find((r) => r.status === "active"), profit: profit.find((r) => r.status === "active"), forcedSale: fsv.find((r) => r.status === "active") })
     }).catch(() => {})
   }, [token])
+
+  // Auto-pick the methodology on reaching valuer review (cost approach when there are buildings,
+  // sales comparison for a vacant plot). The valuer can still switch from the engine card afterwards.
+  const autoEngineTried = useRef<string | null>(null)
+  const role = (session?.user as any)?.role as string | undefined
+  useEffect(() => {
+    if (!token || !request || !property) return
+    if (!["admin", "valuer"].includes(role ?? "")) return
+    if (request.status !== "valuer_review" || request.engineVersion) return
+    if (autoEngineTried.current === request.id) return
+    autoEngineTried.current = request.id
+    const code = property.buildings.length > 0 ? "COST_APPROACH" : "SALES_COMPARISON"
+    getActiveEngineVersion(token, code)
+      .then((ev) => selectEngine(token, request.id, ev.id))
+      .then(() => load())
+      .catch(() => { autoEngineTried.current = null })
+  }, [token, request, property, role, load])
 
   const buildingRateOptions = useMemo(() => rateTables.building.flatMap((t) => t.entries), [rateTables])
   const externalRateOptions = useMemo(() => rateTables.external.flatMap((t) => t.entries), [rateTables])
@@ -308,6 +325,14 @@ function WorkflowStepper({ token, request, onChanged }: { token: string; request
   const terminal = ["completed", "rejected", "cancelled"].includes(request.status)
   const gated = ["valuer_review", "engine_selected", "analysis_in_progress", "valuer_final_review", "draft_report"].includes(request.status)
 
+  const earlyStage = ["draft", "submitted", "assigned", "data_collection", "inspection_in_progress", "information_required", "on_hold"].includes(request.status)
+  const fastTrack = async () => {
+    setBusy(true); setError("")
+    try { await fastTrackRequest(token, request.id); onChanged() }
+    catch (e: any) { setError(e.message || "Could not fast track") }
+    setBusy(false)
+  }
+
   const advance = async () => {
     if (!next) return
     setBusy(true); setError("")
@@ -347,6 +372,11 @@ function WorkflowStepper({ token, request, onChanged }: { token: string; request
         </div>
 
         <div className="flex items-center gap-2">
+          {earlyStage && (
+            <button onClick={fastTrack} disabled={busy} title="Skips assignment and inspection steps and goes straight to the valuation" className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
+              {busy ? <Loader2 size={12} className="animate-spin" /> : <ArrowRight size={12} />} Fast track to valuation
+            </button>
+          )}
           {next && !gated && !terminal && (
             <button onClick={advance} disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-[oklch(0.42_0.19_25)] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[oklch(0.36_0.18_25)] disabled:opacity-50">
               {busy ? <Loader2 size={12} className="animate-spin" /> : <ArrowRight size={12} />} Advance to {STATUS_LABEL[next]}
@@ -1176,7 +1206,6 @@ function CalculationPanel({
 
   const canRun =
     property.land?.plotSizeSqm && landRate &&
-    property.buildings.length > 0 &&
     property.buildings.every((b) => buildingRates[b.id] || matchRate(b.name, buildingRateOptions)) &&
     rules.depreciation && rules.profit
 
@@ -1243,6 +1272,9 @@ function CalculationPanel({
         <label className={lbl}>Adopted land rate (RWF/sqm)</label>
         <input type="number" value={landRate} onChange={(e) => setLandRate(e.target.value)} className={inp} placeholder="25000" />
       </div>
+      {property.buildings.length === 0 && (
+        <p className="mb-3 text-xs text-muted-foreground">No buildings recorded — this will value the land only (vacant plot).</p>
+      )}
 
       {property.buildings.map((b) => {
         const auto = matchRate(b.name, buildingRateOptions)
@@ -1276,6 +1308,14 @@ function CalculationPanel({
         {running ? <Loader2 size={14} className="animate-spin" /> : <Calculator size={14} />}
         Calculate Open Market Value
       </button>
+      {!canRun && !running && (
+        <p className="mt-2 text-xs text-amber-700">
+          {!property.land?.plotSizeSqm ? "Enter the plot size in the Land card first."
+            : !landRate ? "Enter the adopted land rate."
+            : !property.buildings.every((b) => buildingRates[b.id] || matchRate(b.name, buildingRateOptions)) ? "Enter a rate for every building."
+            : "Depreciation / developer profit rules are not set up for this engine."}
+        </p>
+      )}
     </div>
   )
 }

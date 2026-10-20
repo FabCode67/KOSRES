@@ -40,6 +40,12 @@ export class ValuationRequestsController {
     return this.service.assign(id, body, req.user.id);
   }
 
+  @Post(':id/fast-track')
+  fastTrack(@Request() req: any, @Param('id') id: string) {
+    requireRoles(req, ['admin', 'valuer']);
+    return this.service.fastTrack(id, req.user.id);
+  }
+
   @Patch(':id/details')
   updateDetails(@Request() req: any, @Param('id') id: string, @Body() body: { beneficiary?: string; instructor?: string }) {
     requireRoles(req, ['admin', 'valuer']);

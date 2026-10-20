@@ -167,6 +167,31 @@ export class ValuationRequestsService {
       signedName: data.signedName,
       licenseNumber: data.licenseNumber,
     }));
-    return this.transition(id, RequestStatus.APPROVED, approverId, 'Approved and signed off by valuer');
+    await this.transition(id, RequestStatus.APPROVED, approverId, 'Approved and signed off by valuer');
+    // Sign-off is the only real decision; certification and completion follow automatically.
+    await this.transition(id, RequestStatus.CERTIFIED, approverId, 'Certified automatically on approval');
+    return this.transition(id, RequestStatus.COMPLETED, approverId, 'Completed automatically on approval');
+  }
+
+  /**
+   * One-click path for a valuer/admin who does the whole job: moves an early-stage request
+   * (draft, submitted, assigned, data collection, inspection, info required, on hold) straight
+   * to VALUER_REVIEW, logging each hop, and assigns the caller as valuer if none is set.
+   */
+  async fastTrack(id: string, actorId: string) {
+    let request = await this.repo.findOneOrFail({ where: { id }, relations: ['assignedValuer'] });
+    const chain = [RequestStatus.DRAFT, RequestStatus.SUBMITTED, RequestStatus.ASSIGNED, RequestStatus.DATA_COLLECTION];
+    const early = [...chain, RequestStatus.INSPECTION_IN_PROGRESS, RequestStatus.INFORMATION_REQUIRED, RequestStatus.ON_HOLD];
+    if (!early.includes(request.status)) {
+      throw new BadRequestException(`Fast track only applies to early-stage requests (currently ${request.status})`);
+    }
+    if (!request.assignedValuer) await this.repo.update(id, { assignedValuer: { id: actorId } as any });
+    let idx = chain.indexOf(request.status);
+    if (idx >= 0) {
+      for (let i = idx + 1; i < chain.length; i++) await this.transition(id, chain[i], actorId, 'Fast track');
+    }
+    request = await this.repo.findOneOrFail({ where: { id } });
+    if (request.status !== RequestStatus.VALUER_REVIEW) await this.transition(id, RequestStatus.VALUER_REVIEW, actorId, 'Fast track');
+    return this.findOne(id);
   }
 }

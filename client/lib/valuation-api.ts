@@ -490,3 +490,7 @@ export interface ReportReference {
 export function getReportReference(token: string, requestId: string) {
   return jsonFetch<ReportReference>(`/valuation/requests/${requestId}/report/reference`, token)
 }
+
+export function fastTrackRequest(token: string, id: string) {
+  return jsonFetch<ValuationRequestDetail>(`/valuation/requests/${id}/fast-track`, token, { method: "POST" })
+}
