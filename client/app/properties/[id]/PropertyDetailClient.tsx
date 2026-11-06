@@ -59,7 +59,7 @@ export default function PropertyDetailClient({ property, related }: Props) {
               {/* Main image */}
               <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-slate-200 shadow-md">
                 {hasImgs ? (
-                  <Image src={images[imgIdx]} alt={property.title} fill priority
+                  <Image src={images[imgIdx]} alt={`${property.title} – ${property.sector}, ${property.district}`} fill priority
                     className={`object-cover ${isSold ? "grayscale-[35%] brightness-75" : ""}`} sizes="(max-width:1024px)100vw,66vw" />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
@@ -115,7 +115,7 @@ export default function PropertyDetailClient({ property, related }: Props) {
                       className={`relative flex-none w-20 h-14 rounded-xl overflow-hidden border-2 transition-all ${
                         i === imgIdx ? "border-[oklch(0.42_0.19_25)] shadow-md scale-105" : "border-transparent opacity-70 hover:opacity-100"
                       }`}>
-                      <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                      <Image src={img} alt={`${property.title} photo`} fill className="object-cover" sizes="80px" />
                     </button>
                   ))}
                 </div>

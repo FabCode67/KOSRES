@@ -1,11 +1,26 @@
 import type { MetadataRoute } from "next"
+import { getProperties } from "@/lib/api"
+import { slugify } from "@/lib/seo"
 
 const SITE_URL = "https://www.kosres.com"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
+  let props: Awaited<ReturnType<typeof getProperties>>["data"] = []
+  try { props = (await getProperties({ limit: 500 })).data } catch {}
+  const listings: MetadataRoute.Sitemap = props.map((p) => ({
+    url: `${SITE_URL}/properties/${p.id}`, lastModified: new Date(p.updatedAt || now), changeFrequency: "weekly", priority: 0.8,
+  }))
+  const areas = Array.from(new Set(props.flatMap((p) => [p.sector, p.district]).filter(Boolean).map((a) => slugify(a as string))))
+  const areaPages: MetadataRoute.Sitemap = areas.map((a) => ({
+    url: `${SITE_URL}/properties/area/${a}`, lastModified: now, changeFrequency: "daily", priority: 0.85,
+  }))
 
   return [
+    ...listings,
+    ...areaPages,
     // ── Core pages ────────────────────────────────────────────────
     { url: `${SITE_URL}`,                          lastModified: now, changeFrequency: "daily",   priority: 1.0 },
     { url: `${SITE_URL}/properties`,               lastModified: now, changeFrequency: "hourly",  priority: 0.9 },
