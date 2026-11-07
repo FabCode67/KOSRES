@@ -65,6 +65,7 @@ export default function ServiceRequestForm({
     } catch { /* fail silently — WhatsApp always works */ }
     setLoading(false)
     setSubmitted(true)
+    try { (window as any).gtag?.('event', 'generate_lead', { form: 'service_request' }); const a=process.env.NEXT_PUBLIC_GOOGLE_ADS_ID, l=process.env.NEXT_PUBLIC_GOOGLE_ADS_LABEL_FORM; if(a&&l)(window as any).gtag?.('event','conversion',{send_to:`${a}/${l}`}) } catch {}
   }
 
   const change = (name: string, value: string) => {

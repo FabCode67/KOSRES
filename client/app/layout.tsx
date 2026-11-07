@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import ConversionTracker from "@/components/ConversionTracker"
 import { SessionProvider } from "@/components/SessionProvider"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.kosres.com"
@@ -151,6 +152,7 @@ export default function RootLayout({
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
                   gtag('config', '${gaMeasurementId}', { page_path: window.location.pathname });
+                  ${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ? `gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}');` : ''}
                 `,
               }}
             />
@@ -231,6 +233,7 @@ export default function RootLayout({
       <body>
         <SessionProvider>
           <ThemeProvider>{children}</ThemeProvider>
+          <ConversionTracker />
         </SessionProvider>
       </body>
     </html>
